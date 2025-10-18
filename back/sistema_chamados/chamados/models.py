@@ -331,13 +331,13 @@ class Anexo(models.Model):
     """Anexos/Imagens vinculados aos chamados e histórico"""
     ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx']
     
-    nome_arquivo = models.CharField(max_length=255)
+    nome_arquivo = models.CharField(max_length=255, blank=True)
     arquivo = models.FileField(
         upload_to='anexos/%Y/%m/%d/',
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)]
     )
-    mimetype = models.CharField(max_length=100)
-    tamanho_bytes = models.IntegerField()
+    mimetype = models.CharField(max_length=100, blank=True)
+    tamanho_bytes = models.IntegerField(null=True, blank=True)
     chamado_history = models.ForeignKey(
         ChamadoStatusHistory, 
         on_delete=models.CASCADE, 
@@ -355,6 +355,7 @@ class Anexo(models.Model):
         User,
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name='anexos_uploaded'
     )
 
@@ -367,7 +368,11 @@ class Anexo(models.Model):
         if self.arquivo:
             self.nome_arquivo = self.arquivo.name
             self.tamanho_bytes = self.arquivo.size
-            self.mimetype = getattr(self.arquivo.file, 'content_type', 'application/octet-stream')
+            # Tenta obter o mimetype
+            try:
+                self.mimetype = getattr(self.arquivo.file, 'content_type', 'application/octet-stream')
+            except:
+                self.mimetype = 'application/octet-stream'
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -376,14 +381,19 @@ class Anexo(models.Model):
     @property
     def tamanho_formatado(self):
         """Retorna o tamanho do arquivo formatado"""
-        bytes_size = self.tamanho_bytes
+        # ✅ CORREÇÃO: Verificar se tamanho_bytes não é None
+        if self.tamanho_bytes is None:
+            return "0 B"
+        
+        bytes_size = float(self.tamanho_bytes)
+        
         for unit in ['B', 'KB', 'MB', 'GB']:
             if bytes_size < 1024.0:
                 return f"{bytes_size:.1f} {unit}"
             bytes_size /= 1024.0
+        
         return f"{bytes_size:.1f} TB"
-
-
+    
 class Notificacao(models.Model):
     """Notificações para usuários sobre chamados"""
     texto = models.CharField(max_length=500)

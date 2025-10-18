@@ -1,24 +1,36 @@
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 from .views import (
-    UserProfileViewSet, CategoriaViewSet, AmbienteViewSet, AtivoViewSet,
-    ChamadoViewSet, ChamadoStatusHistoryViewSet, AnexoViewSet, NotificacaoViewSet
+    ChamadoViewSet, 
+    AtivoViewSet, 
+    CategoriaViewSet,
+    AmbienteViewSet,
+    UserProfileViewSet,
+    register_user,  # ← Novo
+    current_user,   # ← Novo
 )
 
-# Criar router
 router = DefaultRouter()
-
-# Registrar ViewSets
-router.register(r'user-profiles', UserProfileViewSet, basename='userprofile')
+router.register(r'chamados', ChamadoViewSet, basename='chamado')
+router.register(r'ativos', AtivoViewSet, basename='ativo')
 router.register(r'categorias', CategoriaViewSet, basename='categoria')
 router.register(r'ambientes', AmbienteViewSet, basename='ambiente')
-router.register(r'ativos', AtivoViewSet, basename='ativo')
-router.register(r'chamados', ChamadoViewSet, basename='chamado')
-router.register(r'historico', ChamadoStatusHistoryViewSet, basename='historico')
-router.register(r'anexos', AnexoViewSet, basename='anexo')
-router.register(r'notificacoes', NotificacaoViewSet, basename='notificacao')
+router.register(r'usuarios', UserProfileViewSet, basename='usuario')
 
-# URLs da aplicação
 urlpatterns = [
-    path('api/', include(router.urls)),
+    # JWT Authentication
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
+    # Cadastro e usuário atual
+    path('register/', register_user, name='register'),
+    path('me/', current_user, name='current_user'),
+    
+    # Router URLs
+    path('', include(router.urls)),
 ]

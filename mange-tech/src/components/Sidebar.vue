@@ -14,16 +14,27 @@
         <component :is="item.icon" :size="20" />
         <span class="text-sm font-medium">{{ item.label }}</span>
       </router-link>
+      
+      <!-- Botão de Logout -->
+      <button
+        @click="handleLogout"
+        class="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors text-red-600 hover:bg-red-50 mt-4"
+      >
+        <LogOut :size="20" />
+        <span class="text-sm font-medium">Sair</span>
+      </button>
     </nav>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { LayoutDashboard, Wrench, Package, Users, Settings } from 'lucide-vue-next'
+import { useRoute, useRouter } from 'vue-router'
+import { LayoutDashboard, Wrench, Package, Users, Settings, LogOut } from 'lucide-vue-next'
+import authService from '@/api/authService'
 
 const route = useRoute()
+const router = useRouter()
 
 const menuItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -35,5 +46,12 @@ const menuItems = [
 
 const isActive = (path) => {
   return route.path === path
+}
+
+const handleLogout = () => {
+  if (confirm('Deseja realmente sair?')) {
+    authService.logout()
+    router.push('/login')
+  }
 }
 </script>

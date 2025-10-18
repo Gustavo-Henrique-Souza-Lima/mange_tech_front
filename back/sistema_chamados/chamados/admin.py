@@ -253,26 +253,82 @@ class AnexoAdmin(admin.ModelAdmin):
     list_filter = ['mimetype', 'data_upload']
     search_fields = ['nome_arquivo', 'chamado__titulo', 'usuario_upload__username']
     readonly_fields = ['nome_arquivo', 'mimetype', 'tamanho_bytes', 
-                      'tamanho_formatado', 'data_upload']
-    autocomplete_fields = ['chamado', 'chamado_history', 'usuario_upload']
+                      'tamanho_formatado', 'data_upload', 'usuario_upload']
+    autocomplete_fields = ['chamado', 'chamado_history']
     date_hierarchy = 'data_upload'
     
     fieldsets = (
         ('Arquivo', {
-            'fields': ('arquivo', 'nome_arquivo', 'mimetype', 'tamanho_bytes', 'tamanho_formatado')
+            'fields': ('arquivo',)
+        }),
+        ('Informações do Arquivo (automático)', {
+            'fields': ('nome_arquivo', 'mimetype', 'tamanho_bytes', 'tamanho_formatado'),
+            'classes': ('collapse',)
         }),
         ('Relacionamento', {
-            'fields': ('chamado', 'chamado_history', 'usuario_upload')
+            'fields': ('chamado', 'chamado_history')
         }),
-        ('Data', {
-            'fields': ('data_upload',)
+        ('Metadados', {
+            'fields': ('usuario_upload', 'data_upload'),
+            'classes': ('collapse',)
         }),
     )
     
+    def get_readonly_fields(self, request, obj=None):
+        """Define campos readonly dinamicamente"""
+        if obj:  # Editando objeto existente
+            return ['nome_arquivo', 'mimetype', 'tamanho_bytes', 
+                   'tamanho_formatado', 'data_upload', 'usuario_upload']
+        else:  # Criando novo objeto
+            return ['data_upload']  # Apenas data_upload é readonly ao criar
+    
+    def get_fieldsets(self, request, obj=None):
+        """Define fieldsets dinamicamente"""
+        if obj:  # Editando
+            return (
+                ('Arquivo', {
+                    'fields': ('arquivo',)
+                }),
+                ('Informações do Arquivo', {
+                    'fields': ('nome_arquivo', 'mimetype', 'tamanho_bytes', 'tamanho_formatado')
+                }),
+                ('Relacionamento', {
+                    'fields': ('chamado', 'chamado_history')
+                }),
+                ('Metadados', {
+                    'fields': ('usuario_upload', 'data_upload')
+                }),
+            )
+        else:  # Criando
+            return (
+                ('Arquivo', {
+                    'fields': ('arquivo',)
+                }),
+                ('Relacionamento', {
+                    'fields': ('chamado', 'chamado_history')
+                }),
+            )
+    
+    def save_model(self, request, obj, form, change):
+        """Salva o modelo e adiciona o usuário automaticamente"""
+        if not change:  # Se está criando
+            obj.usuario_upload = request.user
+        super().save_model(request, obj, form, change)
+    
     def chamado_link(self, obj):
-        url = reverse('admin:chamados_chamado_change', args=[obj.chamado.id])
-        return format_html('<a href="{}">{}</a>', url, obj.chamado.titulo)
+        if obj.chamado:
+            url = reverse('admin:chamados_chamado_change', args=[obj.chamado.id])
+            return format_html('<a href="{}">{}</a>', url, obj.chamado.titulo)
+        return '-'
     chamado_link.short_description = 'Chamado'
+    
+    def tamanho_formatado(self, obj):
+        """Exibe o tamanho formatado com tratamento de erro"""
+        try:
+            return obj.tamanho_formatado
+        except:
+            return "N/A"
+    tamanho_formatado.short_description = 'Tamanho'
 
 
 @admin.register(Notificacao)

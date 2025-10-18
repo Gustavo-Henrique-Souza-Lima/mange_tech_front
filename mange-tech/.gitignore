@@ -28,3 +28,15 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+venv/
+/venv
+.venv
+.env
+
+
+node_modules/
+/node_modules
