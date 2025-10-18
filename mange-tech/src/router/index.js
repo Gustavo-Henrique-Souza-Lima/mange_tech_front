@@ -50,18 +50,29 @@ const router = createRouter({
   ]
 })
 
-// Guard de navegação
+// Guard de navegação MELHORADO
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isAuthenticated = authService.isAuthenticated()
 
+  console.log('Navegação:', {
+    to: to.path,
+    requiresAuth,
+    isAuthenticated,
+    token: localStorage.getItem('token')
+  })
+
   if (requiresAuth && !isAuthenticated) {
-    // Redireciona para login se não estiver autenticado
+    // Precisa de autenticação mas não está autenticado
+    console.log('Redirecionando para login - não autenticado')
     next('/login')
   } else if (to.path === '/login' && isAuthenticated) {
-    // Redireciona para dashboard se já estiver autenticado
+    // Já está autenticado e tentando acessar login
+    console.log('Redirecionando para dashboard - já autenticado')
     next('/')
   } else {
+    // Tudo certo, pode navegar
+    console.log('Navegação permitida')
     next()
   }
 })

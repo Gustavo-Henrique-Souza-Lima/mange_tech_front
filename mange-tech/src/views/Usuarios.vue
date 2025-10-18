@@ -20,13 +20,12 @@
         <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" :size="18" />
         <input
           v-model="searchTerm"
-          @input="buscarUsuarios"
           type="text"
           placeholder="Buscar por nome ou email..."
           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-      <select v-model="filtroStatus" @change="buscarUsuarios" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700">
+      <select v-model="filtroStatus" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700">
         <option value="">Todos os Status</option>
         <option value="ativo">Ativo</option>
         <option value="inativo">Inativo</option>
@@ -110,7 +109,6 @@
       @click.self="fecharModal"
     >
       <div class="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <!-- Header -->
         <div class="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
             <h3 class="text-xl font-bold text-gray-800">
@@ -128,9 +126,7 @@
           </button>
         </div>
 
-        <!-- Form -->
         <form @submit.prevent="salvarUsuario" class="p-6">
-          <!-- Nome e Sobrenome -->
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -159,7 +155,6 @@
             </div>
           </div>
 
-          <!-- Username e Email -->
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -192,7 +187,6 @@
             </div>
           </div>
 
-          <!-- Senha (apenas ao criar) -->
           <div v-if="!editando" class="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -222,7 +216,6 @@
             </div>
           </div>
 
-          <!-- Perfil: Telefone e Endereço -->
           <div class="border-t border-gray-200 pt-4 mb-4">
             <h4 class="text-sm font-semibold text-gray-700 mb-3">Informações Adicionais</h4>
             
@@ -265,17 +258,14 @@
             </div>
           </div>
 
-          <!-- Error Message -->
           <div v-if="erroForm" class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
             {{ erroForm }}
           </div>
 
-          <!-- Success Message -->
           <div v-if="sucessoForm" class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
             {{ sucessoForm }}
           </div>
 
-          <!-- Buttons -->
           <div class="flex gap-3 justify-end">
             <button
               type="button"
@@ -332,31 +322,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { Plus, Search, X } from 'lucide-vue-next'
 import usuariosService from '@/api/usuariosService'
 import authService from '@/api/authService'
 
-// Estados principais
 const usuarios = ref([])
 const loading = ref(false)
 const error = ref(null)
 const searchTerm = ref('')
 const filtroStatus = ref('')
 
-// Estados do modal
 const mostrarModal = ref(false)
 const editando = ref(false)
 const salvando = ref(false)
 const erroForm = ref('')
 const sucessoForm = ref('')
 
-// Estados da remoção
 const mostrarModalRemocao = ref(false)
 const usuarioParaRemover = ref(null)
 const removendo = ref(false)
 
-// Formulário
 const formUsuario = ref({
   username: '',
   email: '',
@@ -369,7 +355,7 @@ const formUsuario = ref({
   nif: ''
 })
 
-// Buscar usuários
+// Buscar usuários - CORRIGIDO: sem chamar no @input
 const buscarUsuarios = async () => {
   loading.value = true
   error.value = null
@@ -389,7 +375,19 @@ const buscarUsuarios = async () => {
   }
 }
 
-// Abrir modal para criar
+// Watch para buscar com debounce ao digitar
+let searchTimeout
+watch(searchTerm, () => {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    buscarUsuarios()
+  }, 500) // Aguarda 500ms após parar de digitar
+})
+
+watch(filtroStatus, () => {
+  buscarUsuarios()
+})
+
 const abrirModal = () => {
   editando.value = false
   mostrarModal.value = true
@@ -398,7 +396,6 @@ const abrirModal = () => {
   limparFormulario()
 }
 
-// Abrir modal para editar
 const editarUsuario = (usuario) => {
   editando.value = true
   mostrarModal.value = true
@@ -419,7 +416,6 @@ const editarUsuario = (usuario) => {
   }
 }
 
-// Fechar modal
 const fecharModal = () => {
   if (!salvando.value) {
     mostrarModal.value = false
@@ -427,7 +423,6 @@ const fecharModal = () => {
   }
 }
 
-// Limpar formulário
 const limparFormulario = () => {
   formUsuario.value = {
     username: '',
@@ -444,13 +439,11 @@ const limparFormulario = () => {
   sucessoForm.value = ''
 }
 
-// Salvar usuário
 const salvarUsuario = async () => {
   salvando.value = true
   erroForm.value = ''
   sucessoForm.value = ''
   
-  // Validar senhas (apenas ao criar)
   if (!editando.value) {
     if (formUsuario.value.password !== formUsuario.value.password_confirm) {
       erroForm.value = 'As senhas não coincidem'
@@ -467,7 +460,6 @@ const salvarUsuario = async () => {
   
   try {
     if (editando.value) {
-      // Atualizar usuário existente
       const dados = {
         email: formUsuario.value.email,
         first_name: formUsuario.value.first_name,
@@ -475,13 +467,8 @@ const salvarUsuario = async () => {
       }
 
       await usuariosService.patch(formUsuario.value.id, dados)
-      
-      // Atualizar perfil se houver dados
-      // Nota: você precisará criar um endpoint específico para isso no backend
-      
       sucessoForm.value = 'Usuário atualizado com sucesso!'
     } else {
-      // Criar novo usuário
       const dados = {
         username: formUsuario.value.username,
         email: formUsuario.value.email,
@@ -491,7 +478,6 @@ const salvarUsuario = async () => {
       }
 
       await authService.register(dados)
-      
       sucessoForm.value = 'Usuário criado com sucesso!'
     }
     
@@ -517,13 +503,11 @@ const salvarUsuario = async () => {
   }
 }
 
-// Confirmar remoção
 const confirmarRemocao = (usuario) => {
   usuarioParaRemover.value = usuario
   mostrarModalRemocao.value = true
 }
 
-// Fechar modal de remoção
 const fecharModalRemocao = () => {
   if (!removendo.value) {
     mostrarModalRemocao.value = false
@@ -531,7 +515,6 @@ const fecharModalRemocao = () => {
   }
 }
 
-// Remover usuário
 const removerUsuario = async () => {
   removendo.value = true
   
@@ -547,22 +530,29 @@ const removerUsuario = async () => {
   }
 }
 
-// Helpers
+// Helpers - CORRIGIDOS com validação
 const getNomeCompleto = (usuario) => {
+  if (!usuario) return 'N/A'
   if (usuario.first_name && usuario.last_name) {
     return `${usuario.first_name} ${usuario.last_name}`
   }
-  return usuario.username
+  return usuario.username || 'N/A'
 }
 
 const getIniciais = (usuario) => {
+  if (!usuario) return '??'
+  
   if (usuario.first_name && usuario.last_name) {
     return `${usuario.first_name[0]}${usuario.last_name[0]}`.toUpperCase()
   }
-  return usuario.username.substring(0, 2).toUpperCase()
+  
+  if (usuario.username && usuario.username.length >= 2) {
+    return usuario.username.substring(0, 2).toUpperCase()
+  }
+  
+  return usuario.username ? usuario.username[0].toUpperCase() : '?'
 }
 
-// Lifecycle
 onMounted(() => {
   buscarUsuarios()
 })

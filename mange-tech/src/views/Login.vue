@@ -11,6 +11,7 @@
       <!-- Tabs -->
       <div class="flex border-b border-gray-200 mb-6">
         <button
+          type="button"
           @click="modo = 'login'"
           :class="[
             'flex-1 py-3 text-sm font-medium transition-colors',
@@ -22,6 +23,7 @@
           Entrar
         </button>
         <button
+          type="button"
           @click="modo = 'cadastro'"
           :class="[
             'flex-1 py-3 text-sm font-medium transition-colors',
@@ -44,8 +46,10 @@
             v-model="loginForm.username"
             type="text"
             required
+            autocomplete="username"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Digite seu usuário"
+            @input="error = ''"
           />
         </div>
 
@@ -57,8 +61,10 @@
             v-model="loginForm.password"
             type="password"
             required
+            autocomplete="current-password"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Digite sua senha"
+            @input="error = ''"
           />
         </div>
 
@@ -86,8 +92,10 @@
               v-model="cadastroForm.first_name"
               type="text"
               required
+              autocomplete="given-name"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Nome"
+              @input="clearMessages"
             />
           </div>
           <div>
@@ -98,8 +106,10 @@
               v-model="cadastroForm.last_name"
               type="text"
               required
+              autocomplete="family-name"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Sobrenome"
+              @input="clearMessages"
             />
           </div>
         </div>
@@ -112,8 +122,10 @@
             v-model="cadastroForm.username"
             type="text"
             required
+            autocomplete="username"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Escolha um nome de usuário"
+            @input="clearMessages"
           />
         </div>
 
@@ -125,8 +137,10 @@
             v-model="cadastroForm.email"
             type="email"
             required
+            autocomplete="email"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="seu@email.com"
+            @input="clearMessages"
           />
         </div>
 
@@ -139,8 +153,10 @@
             type="password"
             required
             minlength="6"
+            autocomplete="new-password"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Mínimo 6 caracteres"
+            @input="clearMessages"
           />
         </div>
 
@@ -152,8 +168,10 @@
             v-model="cadastroForm.password_confirm"
             type="password"
             required
+            autocomplete="new-password"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Digite a senha novamente"
+            @input="clearMessages"
           />
         </div>
 
@@ -179,6 +197,7 @@
         <p class="text-xs text-gray-500">
           {{ modo === 'login' ? 'Não tem uma conta?' : 'Já tem uma conta?' }}
           <button
+            type="button"
             @click="toggleModo"
             class="text-blue-600 hover:text-blue-700 font-medium ml-1"
           >
@@ -217,21 +236,47 @@ const cadastroForm = reactive({
 })
 
 const handleLogin = async () => {
+  // Previne múltiplos submits
+  if (loading.value) return
+  
   loading.value = true
   error.value = ''
   
   try {
-    await authService.login(loginForm.username, loginForm.password)
+    // 1. Fazer login e aguardar resposta completa
+    const response = await authService.login(loginForm.username, loginForm.password)
+    
+    console.log('Login bem-sucedido:', response)
+    console.log('Token salvo:', localStorage.getItem('token'))
+    
+    // 2. Pequeno delay para garantir que o token foi salvo
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    // 3. Redirecionar para dashboard
     router.push('/')
+    
   } catch (err) {
-    error.value = 'Usuário ou senha inválidos'
-    console.error('Erro no login:', err)
+    console.error('Erro completo no login:', err)
+    
+    // Mantém o foco no formulário
+    if (err.response?.status === 401) {
+      error.value = 'Usuário ou senha inválidos'
+    } else if (err.response?.status === 400) {
+      error.value = 'Dados inválidos. Verifique os campos.'
+    } else {
+      error.value = err.response?.data?.detail || 
+                    err.response?.data?.message || 
+                    'Erro ao fazer login. Tente novamente.'
+    }
   } finally {
     loading.value = false
   }
 }
 
 const handleCadastro = async () => {
+  // Previne múltiplos submits
+  if (loading.value) return
+  
   loading.value = true
   error.value = ''
   success.value = ''
@@ -282,6 +327,11 @@ const handleCadastro = async () => {
 
 const toggleModo = () => {
   modo.value = modo.value === 'login' ? 'cadastro' : 'login'
+  error.value = ''
+  success.value = ''
+}
+
+const clearMessages = () => {
   error.value = ''
   success.value = ''
 }
