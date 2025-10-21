@@ -2,7 +2,7 @@
 
 <div align="center">
   
-Este repositório contém o **backend (Django)** e o **frontend (React)** do sistema.  
+Este repositório contém o **backend (Django)** e o **frontend (Vue)** do sistema mange tech.  
 Siga os passos abaixo para configurar o ambiente de desenvolvimento.
 
 </div>
