@@ -1,0 +1,132 @@
+# ============================================
+# PYTHON / DJANGO - Backend .gitignore
+# ============================================
+
+# ========== AMBIENTE VIRTUAL (VENV) ==========
+venv/
+env/
+ENV/
+.venv/
+.env/
+virtualenv/
+
+# ========== PYTHON COMPILADO ==========
+*.py[cod]
+*$py.class
+__pycache__/
+*.so
+
+# ========== DJANGO ==========
+*.log
+*.pot
+*.pyc
+db.sqlite3
+db.sqlite3-journal
+/media/
+/staticfiles/
+/static/
+
+# ========== VARIÁVEIS DE AMBIENTE ==========
+.env
+.env.local
+.env.*.local
+*.env
+
+# ========== ARQUIVOS DE CONFIGURAÇÃO SENSÍVEIS ==========
+settings_local.py
+local_settings.py
+secrets.py
+
+# ========== BANCO DE DADOS ==========
+*.db
+*.sqlite
+*.sqlite3
+
+# ========== MIGRAÇÕES (OPCIONAL - REMOVER SE QUISER VERSIONAR) ==========
+# migrations/
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# ========== ARQUIVOS DE CACHE ==========
+.cache/
+*.cache
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ========== CELERY ==========
+celerybeat-schedule
+celerybeat.pid
+
+# ========== JUPYTER NOTEBOOK ==========
+.ipynb_checkpoints
+*.ipynb
+
+# ========== COVERAGE / TESTES ==========
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+nosetests.xml
+
+# ========== IDEs ==========
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ========== SISTEMA OPERACIONAL ==========
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ========== LOGS E TEMPORÁRIOS ==========
+*.log
+*.tmp
+*.temp
+tmp/
+temp/
+
+# ========== BACKUPS ==========
+*.bak
+*.swp
+*.swo
+*~
+
+# ========== NODE (se usar npm no Django) ==========
+node_modules/
+package-lock.json
+yarn.lock
+
+# ========== TERRAFORM (se usar IaC) ==========
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# ========== DOCKER (opcional) ==========
+docker-compose.override.yml
