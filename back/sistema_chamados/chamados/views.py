@@ -184,6 +184,24 @@ class ChamadoViewSet(viewsets.ModelViewSet):
                 usuario=admin
             )
     
+    @action(detail=True, methods=['delete'])
+    def remover(self, request, pk=None):
+        """Remove um chamado (endpoint customizado)"""
+        chamado = self.get_object()
+        
+        # Validações adicionais (ex: apenas criador ou admin pode deletar)
+        if chamado.solicitante != request.user and not request.user.is_staff:
+            return Response(
+                {'error': 'Você não tem permissão para remover este chamado'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        chamado.delete()
+        return Response(
+            {'message': 'Chamado removido com sucesso'},
+            status=status.HTTP_204_NO_CONTENT
+        )
+
     @action(detail=True, methods=['post'])
     def atribuir_responsavel(self, request, pk=None):
         """Atribui um responsável ao chamado"""

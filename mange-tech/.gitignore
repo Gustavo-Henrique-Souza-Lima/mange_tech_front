@@ -151,3 +151,10 @@ cypress/downloads/
 
 node_modules/
 /node_modules
+
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+*.tfvars
