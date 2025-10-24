@@ -1,7 +1,7 @@
 import 'dart:async';
-import '../models/usuario.dart';
-import '../models/chamado.dart';
-import '../models/ativo.dart';
+import 'mange_tech_app/lib/models/usuario.dart';
+import 'mange_tech_app/lib/models/chamado.dart';
+import 'mange_tech_app/lib/models/ativo.dart';
 
 class MockService {
   Future<Map<String, dynamic>> getDashboardData() async {
