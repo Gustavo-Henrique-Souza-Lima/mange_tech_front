@@ -2,13 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/app_drawer.dart';
 import '../models/ativo.dart';
-import '../models/categoria.dart';
-import '../models/ambiente.dart';
 import '../services/api_services.dart';
-import 'package:csv/csv.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 class AtivosScreen extends StatefulWidget {
   @override
@@ -61,65 +55,44 @@ class _AtivosScreenState extends State<AtivosScreen> {
     );
   }
 
-  Future<void> _exportToCSV() async {
-    try {
-      // Preparar dados para CSV
-      List<List<dynamic>> rows = [];
-      
-      // Cabeçalho
-      rows.add([
-        'ID',
-        'Nome',
-        'Código Patrimônio',
-        'QR Code',
-        'Status',
-        'Categoria',
-        'Ambiente',
-        'Descrição',
-        'Data Criação',
-      ]);
-
-      // Dados
-      for (var ativo in list) {
-        rows.add([
-          ativo.id,
-          ativo.nome,
-          ativo.codigoPatrimonio ?? '',
-          ativo.qrCode ?? '',
-          ativo.statusDisplay,
-          ativo.categoria?.nome ?? '',
-          ativo.ambiente?.nome ?? '',
-          ativo.descricao ?? '',
-          ativo.createdAt.toIso8601String(),
-        ]);
-      }
-
-      // Converter para CSV
-      String csv = const ListToCsvConverter().convert(rows);
-
-      // Salvar arquivo
-      final directory = await getApplicationDocumentsDirectory();
-      final path = '${directory.path}/ativos_${DateTime.now().millisecondsSinceEpoch}.csv';
-      final file = File(path);
-      await file.writeAsString(csv);
-
-      // Compartilhar arquivo
-      await Share.shareXFiles([XFile(path)], text: 'Exportação de Ativos');
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Ativos exportados com sucesso!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao exportar: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+  void _exportToText() {
+    // Criar texto formatado com os dados
+    String content = 'RELATÓRIO DE ATIVOS\n';
+    content += '=' * 50 + '\n\n';
+    
+    for (var ativo in list) {
+      content += 'ID: ${ativo.id}\n';
+      content += 'Nome: ${ativo.nome}\n';
+      content += 'Código: ${ativo.codigoPatrimonio ?? "N/A"}\n';
+      content += 'Status: ${ativo.statusDisplay}\n';
+      content += 'Local: ${ativo.local}\n';
+      content += 'Categoria: ${ativo.categoria?.nome ?? "N/A"}\n';
+      content += '-' * 50 + '\n\n';
     }
+
+    // Mostrar em um dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Exportar Ativos'),
+        content: SingleChildScrollView(
+          child: SelectableText(content),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Dados prontos para copiar!'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   @override
@@ -154,7 +127,7 @@ class _AtivosScreenState extends State<AtivosScreen> {
                       ),
                       SizedBox(width: 12),
                       ElevatedButton.icon(
-                        onPressed: _exportToCSV,
+                        onPressed: _exportToText,
                         icon: Icon(Icons.download),
                         label: Text('Exportar'),
                         style: ElevatedButton.styleFrom(
@@ -268,8 +241,8 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
   int? _categoriaId;
   int? _ambienteId;
   
-  List<Categoria> _categorias = [];
-  List<Ambiente> _ambientes = [];
+  List<dynamic> _categorias = [];
+  List<dynamic> _ambientes = [];
   bool _loadingData = true;
   bool _submitting = false;
   String? _error;
@@ -284,7 +257,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
     try {
       final api = Provider.of<ApiService>(context, listen: false);
       
-      // Carregar categorias e ambientes
       final categoriasResponse = await api.getCategorias();
       final ambientesResponse = await api.getAmbientes();
       
@@ -362,7 +334,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Cabeçalho
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -378,7 +349,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
               ),
               SizedBox(height: 24),
 
-              // Erro
               if (_error != null) ...[
                 Container(
                   padding: EdgeInsets.all(12),
@@ -400,7 +370,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
                 SizedBox(height: 16),
               ],
 
-              // Formulário
               Expanded(
                 child: _loadingData
                     ? Center(child: CircularProgressIndicator())
@@ -408,7 +377,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Nome
                             TextFormField(
                               controller: _nomeController,
                               decoration: InputDecoration(
@@ -425,7 +393,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
                             ),
                             SizedBox(height: 16),
 
-                            // Descrição
                             TextFormField(
                               controller: _descricaoController,
                               decoration: InputDecoration(
@@ -444,7 +411,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
                             ),
                             SizedBox(height: 16),
 
-                            // Código Patrimônio
                             TextFormField(
                               controller: _codigoPatrimonioController,
                               decoration: InputDecoration(
@@ -455,7 +421,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
                             ),
                             SizedBox(height: 16),
 
-                            // QR Code
                             TextFormField(
                               controller: _qrCodeController,
                               decoration: InputDecoration(
@@ -466,7 +431,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
                             ),
                             SizedBox(height: 16),
 
-                            // Status
                             DropdownButtonFormField<String>(
                               value: _status,
                               decoration: InputDecoration(
@@ -486,7 +450,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
                             ),
                             SizedBox(height: 16),
 
-                            // Categoria
                             DropdownButtonFormField<int>(
                               value: _categoriaId,
                               decoration: InputDecoration(
@@ -495,7 +458,7 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
                                 prefixIcon: Icon(Icons.category),
                               ),
                               hint: Text('Selecione uma categoria'),
-                              items: _categorias.map((cat) {
+                              items: _categorias.map<DropdownMenuItem<int>>((cat) {
                                 return DropdownMenuItem(
                                   value: cat.id,
                                   child: Text(cat.nome),
@@ -507,7 +470,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
                             ),
                             SizedBox(height: 16),
 
-                            // Ambiente
                             DropdownButtonFormField<int>(
                               value: _ambienteId,
                               decoration: InputDecoration(
@@ -516,7 +478,7 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
                                 prefixIcon: Icon(Icons.location_on),
                               ),
                               hint: Text('Selecione um ambiente'),
-                              items: _ambientes.map((amb) {
+                              items: _ambientes.map<DropdownMenuItem<int>>((amb) {
                                 return DropdownMenuItem(
                                   value: amb.id,
                                   child: Text(amb.nome),
@@ -533,7 +495,6 @@ class _CreateAtivoDialogState extends State<CreateAtivoDialog> {
 
               SizedBox(height: 24),
 
-              // Botões
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
