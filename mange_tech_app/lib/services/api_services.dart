@@ -4,16 +4,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/usuario.dart';
 import '../models/chamado.dart';
 import '../models/ativo.dart';
+import '../models/categoria.dart';
+import '../models/ambiente.dart';
 
 class ApiService {
-  // URL base da API - ALTERE PARA SEU IP/DOMÍNIO
-  static const String baseUrl = 'http://10.109.83.19:8000'; // Android Emulator
-  // static const String baseUrl = 'http://localhost:8000'; // iOS Simulator
-  //  static const String baseUrl = 'http://SEU_IP:8000'; // Dispositivo físico
+  static const String baseUrl = 'http://10.109.71.8:8000';
   
   String? _token;
   
-  // Singleton pattern
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
   ApiService._internal();
@@ -52,7 +50,6 @@ class ApiService {
     return headers;
   }
 
-  /// Login
   Future<Map<String, dynamic>> login(String username, String password) async {
     try {
       final response = await http.post(
@@ -76,7 +73,6 @@ class ApiService {
     }
   }
 
-  /// Registro
   Future<Map<String, dynamic>> register({
     required String username,
     required String email,
@@ -108,18 +104,15 @@ class ApiService {
     }
   }
 
-  /// Logout
   Future<void> logout() async {
     await _removeToken();
   }
 
-  /// Verifica se está autenticado
   Future<bool> isAuthenticated() async {
     await _loadToken();
     return _token != null;
   }
 
-  /// Obter usuário atual
   Future<Map<String, dynamic>?> getCurrentUser() async {
     await _loadToken();
     
@@ -155,7 +148,6 @@ class ApiService {
       if (response.statusCode == 200) {
         final stats = jsonDecode(response.body);
         
-        // Buscar dados adicionais
         final ativosResponse = await http.get(
           Uri.parse('$baseUrl/ativos/'),
           headers: _getHeaders(),
@@ -170,7 +162,6 @@ class ApiService {
           }
         }
 
-        // Calcular abertos/fechados do gráfico
         int abertos = 0;
         int fechados = 0;
         for (var item in stats['por_status']) {
@@ -183,9 +174,9 @@ class ApiService {
 
         return {
           'chamadosAbertos': abertos,
-          'tempoMedio': '2.4h', // Você pode calcular isso no backend
+          'tempoMedio': '2.4h',
           'ativosAtivos': ativosAtivos,
-          'satisfacao': 94, // Implementar lógica de satisfação no backend
+          'satisfacao': 94,
           'grafico': {
             'abertos': abertos.toDouble(),
             'fechados': fechados.toDouble(),
@@ -431,6 +422,74 @@ class ApiService {
       }
     } catch (e) {
       return {'success': false, 'error': 'Erro de conexão: $e'};
+    }
+  }
+
+  // ============================================
+  // CATEGORIAS
+  // ============================================
+
+  Future<List<Categoria>> getCategorias({String? search}) async {
+    await _loadToken();
+    
+    try {
+      var url = '$baseUrl/categorias/';
+      if (search != null && search.isNotEmpty) {
+        url += '?search=$search';
+      }
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final results = data['results'] ?? data;
+        
+        if (results is List) {
+          return results.map((json) => Categoria.fromJson(json)).toList();
+        }
+      }
+      
+      return [];
+    } catch (e) {
+      print('Erro ao buscar categorias: $e');
+      return [];
+    }
+  }
+
+  // ============================================
+  // AMBIENTES
+  // ============================================
+
+  Future<List<Ambiente>> getAmbientes({String? search}) async {
+    await _loadToken();
+    
+    try {
+      var url = '$baseUrl/ambientes/';
+      if (search != null && search.isNotEmpty) {
+        url += '?search=$search';
+      }
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final results = data['results'] ?? data;
+        
+        if (results is List) {
+          return results.map((json) => Ambiente.fromJson(json)).toList();
+        }
+      }
+      
+      return [];
+    } catch (e) {
+      print('Erro ao buscar ambientes: $e');
+      return [];
     }
   }
 
