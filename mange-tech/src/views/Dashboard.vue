@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-800 mb-1">Dashboard</h2>
-      <p class="text-sm text-gray-500">Visão geral do sistema de gestão de chamados e ativos</p>
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Dashboard Gerencial</h2>
+      <p class="text-sm text-gray-500">Visão completa do sistema de chamados e ativos</p>
     </div>
 
     <!-- Loading State -->
@@ -27,7 +27,7 @@
 
     <!-- Dashboard Content -->
     <div v-else>
-      <!-- Stats Cards -->
+      <!-- ==================== CARDS DE ESTATÍSTICAS ==================== -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white p-5 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
           <p class="text-xs text-gray-500 mb-1">Total de Chamados</p>
@@ -54,30 +54,33 @@
         </div>
       </div>
 
-      <!-- Charts Section -->
+      <!-- ==================== GRÁFICOS ==================== -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Status dos Chamados -->
-        <div class="bg-white p-5 rounded-lg border border-gray-200">
-          <p class="text-sm font-semibold text-gray-700 mb-4">Status dos Chamados</p>
-          <div v-if="statusList.length > 0" class="space-y-3">
-            <div 
-              v-for="status in statusList" 
-              :key="status.key" 
-              class="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
-            >
-              <div class="flex items-center gap-3">
-                <div :class="`w-3 h-3 rounded-full ${status.color}`"></div>
-                <span class="text-sm font-medium text-gray-700">{{ status.label }}</span>
-              </div>
-              <span class="text-lg font-bold text-gray-800">{{ status.value }}</span>
-            </div>
-          </div>
-          <div v-else class="text-center py-8 text-gray-400">
-            <p class="text-sm">Nenhum dado disponível</p>
-          </div>
-        </div>
+        <!-- Gráfico de Barras - Status dos Chamados -->
+        <ChartCard
+          title="Chamados por Status"
+          type="bar"
+          :data="graficoStatusData"
+          :options="graficoStatusOptions"
+        />
 
-        <!-- Chamados Recentes -->
+        <!-- Gráfico de Pizza - Urgência dos Chamados -->
+        <ChartCard
+          title="Chamados por Urgência"
+          type="doughnut"
+          :data="graficoUrgenciaData"
+          :options="graficoUrgenciaOptions"
+        />
+
+        <!-- Gráfico de Linhas - Chamados ao Longo do Tempo -->
+        <ChartCard
+          title="Tendência de Chamados (Últimos 7 dias)"
+          type="line"
+          :data="graficoTendenciaData"
+          :options="graficoTendenciaOptions"
+        />
+
+        <!-- Lista de Chamados Recentes -->
         <div class="bg-white p-5 rounded-lg border border-gray-200">
           <p class="text-sm font-semibold text-gray-700 mb-4">Chamados Recentes</p>
           <div v-if="chamadosRecentes.length > 0" class="space-y-2">
@@ -85,6 +88,7 @@
               v-for="chamado in chamadosRecentes" 
               :key="chamado.id" 
               class="p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors cursor-pointer"
+              @click="$router.push('/chamados')"
             >
               <div class="flex items-start justify-between">
                 <div class="flex-1">
@@ -111,7 +115,7 @@
         </div>
       </div>
 
-      <!-- Alertas e Estatísticas -->
+      <!-- ==================== ALERTAS E ESTATÍSTICAS ==================== -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <!-- Ativos em Manutenção -->
         <div class="p-4 rounded-lg border bg-yellow-50 border-yellow-200">
@@ -141,6 +145,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import dashboardService from '@/api/dashboardService'
+import ChartCard from '@/components/ChartCard.vue'
 
 // Estados
 const loading = ref(true)
@@ -163,25 +168,115 @@ const chamadosEmAndamento = computed(() => {
   return emAndamento?.total || 0
 })
 
-const statusList = computed(() => {
+// ==================== DADOS DOS GRÁFICOS ====================
+
+// Gráfico de Status (Barras)
+const graficoStatusData = computed(() => {
   const porStatus = estatisticas.value.por_status || []
   
   const statusMap = {
-    'aberto': { label: 'Aberto', color: 'bg-blue-500' },
-    'aguardando_responsaveis': { label: 'Aguardando Responsáveis', color: 'bg-yellow-500' },
-    'em_andamento': { label: 'Em Andamento', color: 'bg-purple-500' },
-    'realizado': { label: 'Realizado', color: 'bg-gray-500' },
-    'concluido': { label: 'Concluído', color: 'bg-green-500' },
-    'cancelado': { label: 'Cancelado', color: 'bg-red-500' }
+    'aberto': { label: 'Aberto', color: 'rgba(59, 130, 246, 0.8)' },
+    'aguardando_responsaveis': { label: 'Aguardando', color: 'rgba(251, 191, 36, 0.8)' },
+    'em_andamento': { label: 'Em Andamento', color: 'rgba(139, 92, 246, 0.8)' },
+    'realizado': { label: 'Realizado', color: 'rgba(107, 114, 128, 0.8)' },
+    'concluido': { label: 'Concluído', color: 'rgba(34, 197, 94, 0.8)' },
+    'cancelado': { label: 'Cancelado', color: 'rgba(239, 68, 68, 0.8)' }
   }
   
-  return porStatus.map(s => ({
-    key: s.status,
-    label: statusMap[s.status]?.label || s.status,
-    color: statusMap[s.status]?.color || 'bg-gray-500',
-    value: s.total
-  }))
+  return {
+    labels: porStatus.map(s => statusMap[s.status]?.label || s.status),
+    datasets: [{
+      label: 'Quantidade',
+      data: porStatus.map(s => s.total),
+      backgroundColor: porStatus.map(s => statusMap[s.status]?.color || 'rgba(107, 114, 128, 0.8)')
+    }]
+  }
 })
+
+const graficoStatusOptions = {
+  plugins: {
+    legend: {
+      display: false
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        stepSize: 1
+      }
+    }
+  }
+}
+
+// Gráfico de Urgência (Pizza)
+const graficoUrgenciaData = computed(() => {
+  const porUrgencia = estatisticas.value.por_urgencia || []
+  
+  const urgenciaMap = {
+    'baixa': { label: 'Baixa', color: 'rgba(34, 197, 94, 0.8)' },
+    'media': { label: 'Média', color: 'rgba(251, 191, 36, 0.8)' },
+    'alta': { label: 'Alta', color: 'rgba(249, 115, 22, 0.8)' },
+    'critica': { label: 'Crítica', color: 'rgba(239, 68, 68, 0.8)' }
+  }
+  
+  return {
+    labels: porUrgencia.map(u => urgenciaMap[u.urgencia]?.label || u.urgencia),
+    datasets: [{
+      data: porUrgencia.map(u => u.total),
+      backgroundColor: porUrgencia.map(u => urgenciaMap[u.urgencia]?.color || 'rgba(107, 114, 128, 0.8)')
+    }]
+  }
+})
+
+const graficoUrgenciaOptions = {
+  plugins: {
+    legend: {
+      position: 'bottom'
+    }
+  }
+}
+
+// Gráfico de Tendência (Linha) - SIMULADO (você pode implementar no backend)
+const graficoTendenciaData = computed(() => {
+  // Aqui você pode adicionar uma API no backend para retornar dados dos últimos 7 dias
+  return {
+    labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+    datasets: [
+      {
+        label: 'Abertos',
+        data: [5, 8, 12, 7, 10, 6, 9],
+        borderColor: 'rgba(59, 130, 246, 1)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4
+      },
+      {
+        label: 'Concluídos',
+        data: [3, 6, 8, 5, 7, 4, 6],
+        borderColor: 'rgba(34, 197, 94, 1)',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        tension: 0.4
+      }
+    ]
+  }
+})
+
+const graficoTendenciaOptions = {
+  plugins: {
+    legend: {
+      display: true,
+      position: 'top'
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        stepSize: 2
+      }
+    }
+  }
+}
 
 // Helper Functions
 const getStatusColor = (status) => {
