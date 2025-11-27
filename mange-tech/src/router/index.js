@@ -1,7 +1,9 @@
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import authService from '@/api/authService'
 
 import Login from '../views/Login.vue'
+import Cadastro from '../views/Cadastro.vue'  
 import Dashboard from '../views/Dashboard.vue'
 import Ativos from '../views/Ativos.vue'
 import Chamados from '../views/Chamados.vue'
@@ -15,6 +17,12 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: Login,
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/cadastro',
+      name: 'cadastro',
+      component: Cadastro,
       meta: { requiresAuth: false }
     },
     {
@@ -50,29 +58,15 @@ const router = createRouter({
   ]
 })
 
-// Guard de navegação MELHORADO
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isAuthenticated = authService.isAuthenticated()
 
-  console.log('Navegação:', {
-    to: to.path,
-    requiresAuth,
-    isAuthenticated,
-    token: localStorage.getItem('token')
-  })
-
   if (requiresAuth && !isAuthenticated) {
-    // Precisa de autenticação mas não está autenticado
-    console.log('Redirecionando para login - não autenticado')
     next('/login')
-  } else if (to.path === '/login' && isAuthenticated) {
-    // Já está autenticado e tentando acessar login
-    console.log('Redirecionando para dashboard - já autenticado')
+  } else if ((to.path === '/login' || to.path === '/cadastro') && isAuthenticated) {
     next('/')
   } else {
-    // Tudo certo, pode navegar
-    console.log('Navegação permitida')
     next()
   }
 })
