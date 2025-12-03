@@ -27,6 +27,10 @@ INSTALLED_APPS = [
     'chamados',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://webappeduu.azurewebsites.net',
+]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
