@@ -119,7 +119,6 @@ temp/
 
 # ========== NODE (se usar npm no Django) ==========
 node_modules/
-package-lock.json
 yarn.lock
 
 # ========== TERRAFORM (se usar IaC) ==========
