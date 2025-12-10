@@ -39,22 +39,16 @@
           <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">Ativos Relacionados</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div v-for="ativo in chamado.ativos" :key="ativo.id" class="flex items-start bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition">
-              
               <div class="mr-4 flex-shrink-0">
                 <img v-if="ativo.qrUrl" :src="ativo.qrUrl" alt="QR Code" class="w-20 h-20 border p-1 rounded bg-white" />
                 <div v-else class="w-20 h-20 bg-gray-100 flex items-center justify-center rounded border text-xs text-gray-400 text-center p-1">
-                  Sem QR Code
+                  Sem QR
                 </div>
               </div>
-
               <div>
                 <p class="font-bold text-gray-900">{{ ativo.nome }}</p>
                 <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">Patrimônio</p>
                 <p class="text-sm font-mono bg-gray-100 px-1 rounded inline-block">{{ ativo.codigo_patrimonio }}</p>
-                
-                <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-2">ID do QR</p>
-                <p v-if="ativo.qr_code" class="text-sm text-blue-600 font-mono">{{ ativo.qr_code }}</p>
-                <p v-else class="text-sm text-gray-400 italic">Não cadastrado</p>
               </div>
             </div>
           </div>
@@ -77,9 +71,13 @@
              </select>
              <textarea 
                 v-model="comentarioStatus" 
-                placeholder="Motivo da alteração (Obrigatório)..." 
+                placeholder="Motivo da alteração..." 
                 class="w-full border-gray-300 rounded-md shadow-sm p-2 text-sm mb-3 border h-20 focus:ring-blue-500 focus:border-blue-500"
              ></textarea>
+             
+             <label class="block text-xs font-medium text-gray-700 mb-1">Evidência (opcional)</label>
+             <input type="file" @change="(e) => arquivoStatus = e.target.files[0]" class="block w-full text-xs text-gray-500 mb-4 cursor-pointer"/>
+
              <button 
                 @click="atualizarStatus" 
                 class="w-full bg-blue-600 text-white py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -91,10 +89,9 @@
 
            <div class="bg-white p-5 rounded-lg shadow-sm border">
              <h3 class="font-bold text-gray-800 mb-3 flex justify-between items-center">
-                Anexos 
+                Anexos Gerais
                 <span class="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{{ chamado.anexos?.length || 0 }}</span>
              </h3>
-             
              <ul v-if="chamado.anexos && chamado.anexos.length" class="space-y-2 mb-4 max-h-60 overflow-y-auto">
                <li v-for="anexo in chamado.anexos" :key="anexo.id" class="flex items-center justify-between text-sm bg-gray-50 p-2 rounded hover:bg-gray-100 transition">
                  <div class="flex items-center overflow-hidden">
@@ -106,24 +103,15 @@
                  <span class="text-xs text-gray-400 ml-2 whitespace-nowrap">{{ anexo.tamanho_formatado }}</span>
                </li>
              </ul>
-             <div v-else class="text-center py-4 bg-gray-50 rounded mb-4 border border-dashed border-gray-300">
-               <p class="text-sm text-gray-400">Nenhum anexo disponível.</p>
-             </div>
+             <p v-else class="text-sm text-gray-400 italic mb-4 text-center">Nenhum anexo geral.</p>
              
              <div class="border-t pt-3">
-               <label class="block text-xs font-medium text-gray-700 mb-2">Adicionar novo arquivo</label>
-               <input type="file" ref="fileInput" @change="handleFileSelect" class="block w-full text-xs text-gray-500
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-full file:border-0
-                  file:text-xs file:font-semibold
-                  file:bg-blue-50 file:text-blue-700
-                  hover:file:bg-blue-100
-                  cursor-pointer
-                "/>
+               <label class="block text-xs font-medium text-gray-700 mb-2">Upload rápido</label>
+               <input type="file" ref="fileInput" @change="handleFileSelect" class="block w-full text-xs text-gray-500 mb-2"/>
                <button 
                   v-if="arquivoSelecionado"
                   @click="enviarArquivo" 
-                  class="mt-3 w-full bg-green-600 text-white py-1.5 rounded text-sm hover:bg-green-700 transition shadow-sm"
+                  class="w-full bg-green-600 text-white py-1.5 rounded text-sm hover:bg-green-700 transition shadow-sm"
                   :disabled="loadingAction"
                >
                   {{ loadingAction ? 'Enviando...' : 'Enviar Arquivo' }}
@@ -132,34 +120,64 @@
            </div>
         </div>
 
-        <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border">
-          <h3 class="font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <span>📅</span> Histórico de Atividades
-          </h3>
+        <div class="lg:col-span-2 space-y-6">
           
-          <div class="relative border-l-2 border-gray-200 ml-3 space-y-8 pl-8 pb-4">
-            <div v-for="log in chamado.historico" :key="log.id" class="relative group">
-              <span class="absolute -left-[41px] top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white ring-4 ring-white border-2 border-blue-500 z-10">
-                <div class="h-2 w-2 rounded-full bg-blue-500"></div>
-              </span>
-              
-              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1">
-                 <p class="text-sm font-medium text-gray-900">
-                    <span class="font-bold text-gray-800">{{ log.user?.nome_completo || log.user?.username }}</span> 
-                    <span class="text-gray-500 mx-1">alterou para</span>
-                    <span :class="getStatusClass(log.status)" class="px-2 py-0.5 rounded text-xs border inline-block transform translate-y-[-1px]">{{ log.status_display }}</span>
-                 </p>
-                 <span class="text-xs text-gray-400 group-hover:text-gray-600 transition">{{ formatDateTime(log.created_at) }}</span>
-              </div>
-              
-              <div v-if="log.comentario" class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md italic border-l-4 border-gray-300">
-                "{{ log.comentario }}"
-              </div>
+          <div class="bg-white p-5 rounded-lg shadow-sm border">
+            <h3 class="font-bold text-gray-800 mb-2">Adicionar Comentário / Observação</h3>
+            <textarea 
+              v-model="novoComentario" 
+              placeholder="Escreva uma atualização sobre o chamado..." 
+              class="w-full border-gray-300 rounded-md shadow-sm p-3 text-sm border focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+            ></textarea>
+            
+            <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
+               <div class="flex items-center gap-2">
+                 <label class="text-xs font-medium text-gray-600">Anexar:</label>
+                 <input type="file" @change="(e) => arquivoComentario = e.target.files[0]" class="text-xs text-gray-500 w-48"/>
+               </div>
+               
+               <button 
+                 @click="enviarComentario" 
+                 class="bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-900 transition disabled:opacity-50"
+                 :disabled="(!novoComentario && !arquivoComentario) || loadingAction"
+               >
+                 {{ loadingAction ? 'Enviando...' : 'Comentar' }}
+               </button>
+            </div>
+          </div>
 
-              <div v-if="log.anexos && log.anexos.length" class="mt-2 flex flex-wrap gap-2">
-                 <a v-for="anexoH in log.anexos" :key="anexoH.id" :href="anexoH.url" target="_blank" class="text-xs bg-white border border-blue-100 px-2 py-1 rounded hover:bg-blue-50 text-blue-600 flex items-center gap-1 shadow-sm">
-                    <span>📎</span> {{ anexoH.nome_arquivo }}
-                 </a>
+          <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <h3 class="font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <span>📅</span> Histórico de Atividades
+            </h3>
+            
+            <div class="relative border-l-2 border-gray-200 ml-3 space-y-8 pl-8 pb-4">
+              <div v-for="log in chamado.historico" :key="log.id" class="relative group">
+                <span class="absolute -left-[41px] top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white ring-4 ring-white border-2 border-blue-500 z-10">
+                  <div class="h-2 w-2 rounded-full bg-blue-500"></div>
+                </span>
+                
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1">
+                   <p class="text-sm font-medium text-gray-900">
+                      <span class="font-bold text-gray-800">{{ log.user?.nome_completo || log.user?.username }}</span> 
+                      
+                      <span v-if="log.comentario && log.comentario.includes('Status alterado')" class="text-gray-500 mx-1">alterou o status para</span>
+                      <span v-else class="text-gray-500 mx-1">registrou:</span>
+
+                      <span :class="getStatusClass(log.status)" class="px-2 py-0.5 rounded text-xs border inline-block transform translate-y-[-1px]">{{ log.status_display }}</span>
+                   </p>
+                   <span class="text-xs text-gray-400 group-hover:text-gray-600 transition">{{ formatDateTime(log.created_at) }}</span>
+                </div>
+                
+                <div v-if="log.comentario" class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md italic border-l-4 border-gray-300 mt-1">
+                  "{{ log.comentario }}"
+                </div>
+
+                <div v-if="log.anexos && log.anexos.length" class="mt-2 flex flex-wrap gap-2">
+                   <a v-for="anexoH in log.anexos" :key="anexoH.id" :href="anexoH.url" target="_blank" class="text-xs bg-white border border-blue-100 px-2 py-1 rounded hover:bg-blue-50 text-blue-600 flex items-center gap-1 shadow-sm transition hover:shadow-md">
+                      <span>📎</span> {{ anexoH.nome_arquivo }}
+                   </a>
+                </div>
               </div>
             </div>
           </div>
@@ -180,16 +198,19 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import chamadosService from '@/api/chamadosService'
-import QRCode from 'qrcode' // Importação necessária para gerar a imagem
+import QRCode from 'qrcode'
 
 const route = useRoute()
 const chamado = ref(null)
 const loading = ref(true)
 const loadingAction = ref(false)
 
-// Estados do formulário
+// Estados
 const novoStatus = ref('')
 const comentarioStatus = ref('')
+const novoComentario = ref('')
+const arquivoStatus = ref(null)
+const arquivoComentario = ref(null)
 const arquivoSelecionado = ref(null)
 const fileInput = ref(null)
 
@@ -199,31 +220,25 @@ const fetchChamado = async () => {
     const res = await chamadosService.getById(route.params.id)
     const dados = res.data
     
-    // --- LÓGICA DE GERAÇÃO DE QR CODE ---
     if (dados.ativos && dados.ativos.length) {
       for (const ativo of dados.ativos) {
         if (ativo.qr_code) {
           try {
-            // Gera a imagem Base64 do QR Code a partir do texto
             ativo.qrUrl = await QRCode.toDataURL(ativo.qr_code)
-          } catch (err) {
-            console.error('Erro ao gerar QR Code para ativo:', ativo.nome, err)
-          }
+          } catch (err) { console.error(err) }
         }
       }
     }
-    // -------------------------------------
-
     chamado.value = dados
     novoStatus.value = dados.status
   } catch (error) {
     console.error(error)
-    // Não usar alert no onMounted para não travar UX, melhor renderizar estado de erro
   } finally {
     loading.value = false
   }
 }
 
+// Mudar Status (com anexo opcional)
 const atualizarStatus = async () => {
   if (!novoStatus.value) return
   
@@ -234,30 +249,49 @@ const atualizarStatus = async () => {
 
   loadingAction.value = true
   try {
-    await chamadosService.alterarStatus(chamado.value.id, novoStatus.value, comentarioStatus.value)
+    await chamadosService.alterarStatus(
+      chamado.value.id, 
+      novoStatus.value, 
+      comentarioStatus.value,
+      arquivoStatus.value
+    )
     comentarioStatus.value = ''
-    await fetchChamado() // Recarrega para ver histórico novo
+    arquivoStatus.value = null
+    await fetchChamado() 
     alert('Status atualizado com sucesso!')
   } catch (error) {
     console.error(error)
-    const msg = error.response?.data?.error || error.response?.data?.detail || 'Erro desconhecido'
-    alert('Erro ao atualizar status: ' + msg)
+    alert('Erro ao atualizar status.')
   } finally {
     loadingAction.value = false
   }
 }
 
+// Adicionar Comentário (com anexo opcional)
+const enviarComentario = async () => {
+  if (!novoComentario.value && !arquivoComentario.value) return
+  
+  loadingAction.value = true
+  try {
+    await chamadosService.adicionarComentario(
+      chamado.value.id, 
+      novoComentario.value,
+      arquivoComentario.value
+    )
+    novoComentario.value = ''
+    arquivoComentario.value = null
+    await fetchChamado()
+  } catch (error) {
+    alert('Erro ao enviar comentário')
+  } finally {
+    loadingAction.value = false
+  }
+}
+
+// Upload Rápido (Anexos Gerais)
 const handleFileSelect = (event) => {
   const file = event.target.files[0]
-  if (file) {
-    // Validação básica de tamanho (ex: 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-        alert('O arquivo é muito grande. O limite é 5MB.')
-        event.target.value = '' // Limpa o input
-        return
-    }
-    arquivoSelecionado.value = file
-  }
+  if (file) arquivoSelecionado.value = file
 }
 
 const enviarArquivo = async () => {
@@ -267,11 +301,10 @@ const enviarArquivo = async () => {
     await chamadosService.uploadAnexo(chamado.value.id, arquivoSelecionado.value)
     arquivoSelecionado.value = null
     if(fileInput.value) fileInput.value.value = ''
-    await fetchChamado() // Recarrega para ver anexo na lista
+    await fetchChamado()
     alert('Arquivo anexado com sucesso!')
   } catch (error) {
-    console.error(error)
-    alert('Erro ao enviar arquivo. Verifique se o formato é permitido.')
+    alert('Erro ao enviar arquivo.')
   } finally {
     loadingAction.value = false
   }

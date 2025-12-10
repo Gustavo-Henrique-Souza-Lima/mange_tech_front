@@ -78,7 +78,7 @@ export default {
       const formData = new FormData()
       formData.append('arquivo', arquivo)
       formData.append('chamado', chamadoId) 
-      
+
       const response = await api.post('/anexos/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -91,16 +91,28 @@ export default {
     }
   },
 
-  async alterarStatus(id, status, comentario = '') {
-    try {
-      const response = await api.post(`/chamados/${id}/alterar_status/`, {
-        status,
-        comentario
-      })
-      return response.data
-    } catch (error) {
-      console.error('Erro ao alterar status:', error)
-      throw error
-    }
-  }
+  // ATUALIZE ESTES DOIS MÉTODOS:
+
+  async alterarStatus(id, status, comentario, arquivo = null) {
+    const formData = new FormData()
+    formData.append('status', status)
+    if(comentario) formData.append('comentario', comentario)
+    if(arquivo) formData.append('arquivo', arquivo)
+
+    // Nota: Headers multipart são automáticos quando se passa FormData no axios, 
+    // mas forçar não faz mal.
+    return api.post(`/chamados/${id}/alterar_status/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+
+  async adicionarComentario(id, comentario, arquivo = null) {
+    const formData = new FormData()
+    if(comentario) formData.append('comentario', comentario)
+    if(arquivo) formData.append('arquivo', arquivo)
+
+    return api.post(`/chamados/${id}/comentar/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
 }
