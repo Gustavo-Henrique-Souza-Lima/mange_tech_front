@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 import dj_database_url
+from corsheaders.defaults import default_headers
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,6 +28,7 @@ INSTALLED_APPS = [
     'chamados',
 ]
 
+# Configuração CRÍTICA para o Django Admin funcionar no Azure (HTTPS)
 CSRF_TRUSTED_ORIGINS = [
     'https://webappeduu.azurewebsites.net',
 ]
@@ -37,7 +39,7 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  
+    'corsheaders.middleware.CorsMiddleware', # MANTENHA NO TOPO
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -104,12 +106,33 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS Settings
-CORS_ALLOW_ALL_ORIGINS = True
+# =========================================================
+# CORS Settings - Configuração Robusta
+# =========================================================
+
+# 1. Desligamos o "Liberar Geral" simples
+CORS_ALLOW_ALL_ORIGINS = False 
+
+# 2. Permitimos envio de Cookies/Tokens
 CORS_ALLOW_CREDENTIALS = True
 
+# 3. Regras Específicas (Whitelist) - Incluindo Azure e Localhost
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",               # Dev Local
+    "http://127.0.0.1:5173",               # Dev Local IP
+    "https://webappeduu.azurewebsites.net", # Dev Azure
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://[\w-]+\.vercel\.app$",
+]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'content-disposition', 
+]
+
 # =========================================================
-# REST Framework (COM RATE LIMITING / SOLUÇÃO 3 APLICADA)
+# REST Framework (COM RATE LIMITING)
 # =========================================================
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -130,14 +153,14 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
     
-    # --- CONFIGURAÇÃO DE PROTEÇÃO (RATE LIMITING) ---
+    # --- Proteção contra Ataques (DDoS / Brute Force) ---
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle', 
         'rest_framework.throttling.UserRateThrottle'  
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '20/minute',   
-        'user': '100/minute', 
+        'anon': '30/minute',   # Aumentei levemente para não travar seus testes
+        'user': '120/minute', 
     }
 }
 
