@@ -10,7 +10,7 @@ import Usuarios from '../views/Usuarios.vue'
 import Configuracoes from '../views/Configuracoes.vue'
 import ChamadoDetalhes from '../views/ChamadoDetalhes.vue'
 import Ambientes from '../views/Ambientes.vue'
-import AtivoDetalhes from '../views/AtivoDetalhes.vue'
+import AtivoDetalhes from '../views/AtivosDetalhes.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
