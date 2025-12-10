@@ -1,14 +1,11 @@
-<!-- src/views/Login.vue - ATUALIZADO -->
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50">
     <div class="bg-white p-8 rounded-lg border border-gray-200 shadow-sm w-full max-w-md">
-      <!-- Logo/Título -->
       <div class="text-center mb-8">
         <h1 class="text-3xl font-bold text-gray-800 mb-2">MANGE_TECH</h1>
         <p class="text-sm text-gray-500">Sistema de Gestão de Chamados</p>
       </div>
 
-      <!-- Formulário de Login -->
       <form @submit.prevent="handleLogin" class="space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -49,11 +46,14 @@
           :disabled="loading"
           class="w-full bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
-          {{ loading ? 'Entrando...' : 'Entrar' }}
+          <span v-if="loading" class="flex items-center justify-center gap-2">
+             <span class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+             Entrando...
+          </span>
+          <span v-else>Entrar</span>
         </button>
       </form>
 
-      <!-- Link para Cadastro -->
       <div class="mt-6 text-center">
         <p class="text-sm text-gray-600">
           Não tem uma conta?
@@ -82,7 +82,9 @@ const loginForm = reactive({
 })
 
 const handleLogin = async () => {
-  if (loading.value) return
+  // SOLUÇÃO 2 (LÓGICA): 
+  // Se já estiver carregando, cancela qualquer novo clique imediatamente.
+  if (loading.value) return 
   
   loading.value = true
   error.value = ''
@@ -91,8 +93,8 @@ const handleLogin = async () => {
     const response = await authService.login(loginForm.username, loginForm.password)
     
     console.log('Login bem-sucedido:', response)
-    console.log('Token salvo:', localStorage.getItem('token'))
     
+    // Pequeno delay para garantir que o token foi salvo antes de trocar de rota
     await new Promise(resolve => setTimeout(resolve, 100))
     
     router.push('/')
@@ -110,6 +112,7 @@ const handleLogin = async () => {
                     'Erro ao fazer login. Tente novamente.'
     }
   } finally {
+    // Só libera o botão quando tudo terminar (sucesso ou erro)
     loading.value = false
   }
 }
