@@ -73,17 +73,14 @@ export default {
     }
   },
 
+  // Upload de Anexo Avulso (Correção: Removido Header Manual)
   async uploadAnexo(chamadoId, arquivo) {
     try {
       const formData = new FormData()
       formData.append('arquivo', arquivo)
       formData.append('chamado', chamadoId) 
 
-      const response = await api.post('/anexos/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
+      const response = await api.post('/anexos/', formData)
       return response.data
     } catch (error) {
       console.error('Erro ao enviar anexo:', error)
@@ -91,28 +88,28 @@ export default {
     }
   },
 
-  // ATUALIZE ESTES DOIS MÉTODOS:
+  // Alterar Status com Anexo (Correção: Removido Header Manual)
+  async alterarStatus(id, status, comentario = '', arquivo = null) {
+    try {
+      const formData = new FormData()
+      formData.append('status', status)
+      if(comentario) formData.append('comentario', comentario)
+      if(arquivo) formData.append('arquivo', arquivo)
 
-  async alterarStatus(id, status, comentario, arquivo = null) {
-    const formData = new FormData()
-    formData.append('status', status)
-    if(comentario) formData.append('comentario', comentario)
-    if(arquivo) formData.append('arquivo', arquivo)
-
-    // Nota: Headers multipart são automáticos quando se passa FormData no axios, 
-    // mas forçar não faz mal.
-    return api.post(`/chamados/${id}/alterar_status/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    })
+      const response = await api.post(`/chamados/${id}/alterar_status/`, formData)
+      return response.data
+    } catch (error) {
+      console.error('Erro ao alterar status:', error)
+      throw error
+    }
   },
 
+  // Adicionar Comentário com Anexo (Correção: Removido Header Manual)
   async adicionarComentario(id, comentario, arquivo = null) {
     const formData = new FormData()
     if(comentario) formData.append('comentario', comentario)
     if(arquivo) formData.append('arquivo', arquivo)
 
-    return api.post(`/chamados/${id}/comentar/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    return api.post(`/chamados/${id}/comentar/`, formData)
   },
 }
