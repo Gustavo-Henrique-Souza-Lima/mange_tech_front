@@ -53,31 +53,23 @@
               <div class="mr-4 flex-shrink-0 flex flex-col items-center">
                 <div 
                   class="relative w-24 h-24 bg-white border rounded-lg p-1 cursor-pointer overflow-hidden shadow-sm group-hover:scale-105 transition-transform"
-                  @click="abrirModalQr(ativo.qrUrl, ativo.nome)"
+                  @click="abrirModalImagem(ativo.qrUrl, `QR Code: ${ativo.nome}`)"
                   title="Clique para ampliar"
                 >
                   <img v-if="ativo.qrUrl" :src="ativo.qrUrl" alt="QR Code" class="w-full h-full object-contain" />
                   <div v-else class="w-full h-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 text-center">
                     Sem QR
                   </div>
-                  <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 flex items-center justify-center transition-all">
-                    <span class="opacity-0 group-hover:opacity-100 text-xl">🔍</span>
-                  </div>
                 </div>
-                <span class="text-[10px] text-blue-600 mt-1 font-medium cursor-pointer hover:underline" @click="abrirModalQr(ativo.qrUrl, ativo.nome)">Ampliar</span>
+                <span class="text-[10px] text-blue-600 mt-1 font-medium cursor-pointer hover:underline" @click="abrirModalImagem(ativo.qrUrl, ativo.nome)">Ampliar</span>
               </div>
 
               <div class="flex-1 min-w-0">
                 <p class="font-bold text-gray-900 truncate" :title="ativo.nome">{{ ativo.nome }}</p>
-                
                 <div class="mt-2 space-y-1">
                   <div>
                     <p class="text-[10px] text-gray-400 uppercase font-bold">Patrimônio</p>
                     <p class="text-xs font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-600 inline-block border">{{ ativo.codigo_patrimonio }}</p>
-                  </div>
-                  <div v-if="ativo.qr_code">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold">Código QR</p>
-                    <p class="text-xs text-blue-600 font-mono truncate">{{ ativo.qr_code }}</p>
                   </div>
                 </div>
               </div>
@@ -89,13 +81,12 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <div class="lg:col-span-1 space-y-6">
-           
            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
              <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">Gerenciar Chamado</h3>
              
              <label class="text-xs font-semibold text-gray-500 uppercase">Novo Status</label>
              <div class="relative mb-3">
-               <select v-model="novoStatus" class="w-full appearance-none bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+               <select v-model="novoStatus" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block p-2.5">
                  <option value="aberto">⭕ Aberto</option>
                  <option value="aguardando_responsaveis">⏳ Aguardando Resp.</option>
                  <option value="em_andamento">⚙️ Em Andamento</option>
@@ -103,21 +94,14 @@
                  <option value="concluido">🏁 Concluído</option>
                  <option value="cancelado">🚫 Cancelado</option>
                </select>
-               <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-               </div>
              </div>
 
              <label class="text-xs font-semibold text-gray-500 uppercase">Motivo (Obrigatório)</label>
-             <textarea 
-                v-model="comentarioStatus" 
-                placeholder="Explique o motivo da alteração..." 
-                class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-sm mb-3 focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-             ></textarea>
+             <textarea v-model="comentarioStatus" placeholder="Explique..." class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-sm mb-3 min-h-[80px]"></textarea>
              
              <div class="mb-4">
                 <label class="text-xs font-semibold text-gray-500 uppercase block mb-1">Evidência (Opcional)</label>
-                <input type="file" @change="(e) => arquivoStatus = e.target.files[0]" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300"/>
+                <input type="file" @change="(e) => arquivoStatus = e.target.files[0]" class="block w-full text-xs text-gray-500"/>
              </div>
 
              <button 
@@ -137,39 +121,42 @@
              </div>
              
              <div v-if="chamado.anexos && chamado.anexos.length" class="space-y-3 mb-5 max-h-80 overflow-y-auto pr-1">
-               <div v-for="anexo in chamado.anexos" :key="anexo.id" class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-sm transition group">
+               <div v-for="anexo in chamado.anexos" :key="anexo.id" class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition">
                  <div class="flex items-center gap-3 overflow-hidden">
-                   <div class="w-8 h-8 rounded bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
-                     📎
+                   <div v-if="isImage(anexo.nome_arquivo)" 
+                        @click="abrirModalImagem(anexo.url, anexo.nome_arquivo)"
+                        class="w-10 h-10 rounded bg-gray-100 border overflow-hidden cursor-pointer flex-shrink-0">
+                      <img :src="anexo.url" class="w-full h-full object-cover" />
                    </div>
+                   <div v-else class="w-10 h-10 rounded bg-blue-50 flex items-center justify-center text-blue-500 shrink-0 font-bold text-xs">
+                     DOC
+                   </div>
+
                    <div class="flex flex-col min-w-0">
-                     <a :href="anexo.url" target="_blank" class="text-sm font-medium text-gray-700 hover:text-blue-600 truncate block" :title="anexo.nome_arquivo">
+                     <a :href="anexo.url" target="_blank" class="text-sm font-medium text-gray-700 hover:text-blue-600 truncate block">
                        {{ anexo.nome_arquivo }}
                      </a>
-                     <span class="text-[10px] text-gray-400">{{ anexo.tamanho_formatado }} • {{ formatDataCurta(anexo.data_upload) }}</span>
+                     <span class="text-[10px] text-gray-400">{{ anexo.tamanho_formatado }}</span>
                    </div>
                  </div>
-                 <a :href="anexo.url" target="_blank" class="text-gray-400 hover:text-blue-600 p-1" title="Baixar">⬇️</a>
+                 <a :href="anexo.url" target="_blank" class="text-gray-400 hover:text-blue-600 p-1">⬇️</a>
                </div>
              </div>
              
-             <div v-else class="flex flex-col items-center justify-center py-6 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50 mb-4">
-               <span class="text-2xl mb-1">📂</span>
-               <p class="text-sm text-gray-400">Nenhum arquivo anexado.</p>
+             <div v-else class="text-center py-4 bg-gray-50 rounded mb-4 text-xs text-gray-400">
+               Nenhum arquivo anexado.
              </div>
              
              <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
                <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Novo Upload</label>
-               <div class="flex gap-2">
-                 <input type="file" ref="fileInput" @change="handleFileSelect" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"/>
-               </div>
+               <input type="file" ref="fileInput" @change="handleFileSelect" class="block w-full text-xs text-gray-500 mb-2"/>
                <button 
                   v-if="arquivoSelecionado"
                   @click="enviarArquivo" 
-                  class="mt-3 w-full bg-green-600 text-white py-1.5 rounded-md text-xs font-bold hover:bg-green-700 transition shadow-sm uppercase tracking-wide"
+                  class="w-full bg-green-600 text-white py-1.5 rounded-md text-xs font-bold hover:bg-green-700 shadow-sm uppercase"
                   :disabled="loadingAction"
                >
-                  {{ loadingAction ? 'Enviando 0%' : 'Enviar Arquivo Agora' }}
+                  {{ loadingAction ? 'Enviando...' : 'Enviar Agora' }}
                </button>
              </div>
            </div>
@@ -180,7 +167,7 @@
           <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
             <h3 class="font-bold text-gray-800 mb-2 flex items-center gap-2">💬 Adicionar Comentário</h3>
             <div class="flex gap-3 items-start">
-              <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500 text-xs">EU</div>
+              <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center font-bold text-white text-xs">EU</div>
               <div class="flex-1">
                 <textarea 
                   v-model="novoComentario" 
@@ -235,11 +222,28 @@
                     {{ log.comentario }}
                   </div>
 
-                  <div v-if="log.anexos && log.anexos.length" class="mt-3 pt-3 border-t border-gray-200 flex flex-wrap gap-2">
-                     <a v-for="anexoH in log.anexos" :key="anexoH.id" :href="anexoH.url" target="_blank" class="text-xs bg-white border border-blue-200 px-3 py-1.5 rounded-md hover:bg-blue-50 text-blue-700 flex items-center gap-2 shadow-sm transition">
-                        <span>📎</span> {{ anexoH.nome_arquivo }}
-                     </a>
+                  <div v-if="log.anexos && log.anexos.length" class="mt-3 pt-3 border-t border-gray-200">
+                     <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Evidências / Anexos</p>
+                     
+                     <div class="flex flex-wrap gap-2">
+                        <div v-for="anexoH in log.anexos" :key="anexoH.id">
+                           
+                           <div v-if="isImage(anexoH.nome_arquivo)" 
+                                @click="abrirModalImagem(anexoH.url, `Evidência - ${log.status_display}`)"
+                                class="w-24 h-24 border rounded-lg overflow-hidden bg-white cursor-pointer hover:opacity-90 shadow-sm relative group/img">
+                              <img :src="anexoH.url" class="w-full h-full object-cover" />
+                              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover/img:bg-opacity-20 transition flex items-center justify-center">
+                                <span class="text-white opacity-0 group-hover/img:opacity-100 font-bold">🔍</span>
+                              </div>
+                           </div>
+
+                           <a v-else :href="anexoH.url" target="_blank" class="flex items-center gap-1 text-xs bg-white border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700">
+                              <span>📎</span> {{ anexoH.nome_arquivo }}
+                           </a>
+                        </div>
+                     </div>
                   </div>
+
                 </div>
               </div>
             </div>
@@ -255,21 +259,20 @@
        <button @click="fetchChamado" class="mt-4 text-blue-600 hover:underline font-medium">Tentar novamente</button>
     </div>
 
-    <div v-if="modalQrAberto" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4 transition-opacity" @click.self="fecharModalQr">
-      <div class="bg-white p-4 rounded-2xl max-w-sm w-full relative shadow-2xl animate-scaleIn">
-        <button @click="fecharModalQr" class="absolute top-2 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+    <div v-if="modalAberto" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-95 p-4 transition-opacity" @click.self="fecharModalImagem">
+      <div class="relative max-w-4xl w-full flex flex-col items-center animate-scaleIn">
+        <button @click="fecharModalImagem" class="absolute -top-10 right-0 text-white hover:text-gray-300 text-3xl font-bold">&times;</button>
         
-        <div class="text-center">
-          <h3 class="text-lg font-bold text-gray-800 mb-1">{{ qrTitulo }}</h3>
-          <p class="text-xs text-gray-500 mb-4">Aponte a câmera para ler</p>
-          
-          <div class="bg-white p-2 border-2 border-gray-100 rounded-xl inline-block shadow-inner">
-            <img :src="qrImagemAmpliada" class="w-64 h-64 object-contain" />
-          </div>
-          
-          <div class="mt-4">
-            <button @click="fecharModalQr" class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition">Fechar</button>
-          </div>
+        <h3 class="text-white text-lg font-medium mb-4">{{ modalTitulo }}</h3>
+        
+        <div class="bg-transparent rounded-lg inline-block shadow-2xl overflow-hidden max-h-[80vh]">
+          <img :src="imagemAmpliada" class="w-full h-full object-contain" style="max-height: 80vh;" />
+        </div>
+        
+        <div class="mt-6">
+          <a :href="imagemAmpliada" target="_blank" class="bg-gray-800 text-white px-6 py-2 rounded-full text-sm hover:bg-gray-700 transition border border-gray-600">
+            Abrir original em nova aba
+          </a>
         </div>
       </div>
     </div>
@@ -288,7 +291,7 @@ const chamado = ref(null)
 const loading = ref(true)
 const loadingAction = ref(false)
 
-// Estados
+// Estados de Form
 const novoStatus = ref('')
 const comentarioStatus = ref('')
 const novoComentario = ref('')
@@ -297,10 +300,10 @@ const arquivoComentario = ref(null)
 const arquivoSelecionado = ref(null)
 const fileInput = ref(null)
 
-// Estados do Modal QR
-const modalQrAberto = ref(false)
-const qrImagemAmpliada = ref('')
-const qrTitulo = ref('')
+// Estados do Modal Imagem
+const modalAberto = ref(false)
+const imagemAmpliada = ref('')
+const modalTitulo = ref('')
 
 const fetchChamado = async () => {
   loading.value = true
@@ -308,11 +311,12 @@ const fetchChamado = async () => {
     const res = await chamadosService.getById(route.params.id)
     const dados = res.data
     
+    // Gera QR Code
     if (dados.ativos && dados.ativos.length) {
       for (const ativo of dados.ativos) {
         if (ativo.qr_code) {
           try {
-            ativo.qrUrl = await QRCode.toDataURL(ativo.qr_code, { width: 300, margin: 2 })
+            ativo.qrUrl = await QRCode.toDataURL(ativo.qr_code, { width: 400, margin: 2 })
           } catch (err) { console.error(err) }
         }
       }
@@ -326,41 +330,38 @@ const fetchChamado = async () => {
   }
 }
 
-// Modal Logic
-const abrirModalQr = (url, titulo) => {
+// Helpers Visuais
+const isImage = (filename) => {
+  if (!filename) return false
+  return /\.(jpg|jpeg|png|gif|webp)$/i.test(filename)
+}
+
+const abrirModalImagem = (url, titulo) => {
   if (!url) return
-  qrImagemAmpliada.value = url
-  qrTitulo.value = titulo
-  modalQrAberto.value = true
+  imagemAmpliada.value = url
+  modalTitulo.value = titulo || 'Visualização'
+  modalAberto.value = true
 }
 
-const fecharModalQr = () => {
-  modalQrAberto.value = false
+const fecharModalImagem = () => {
+  modalAberto.value = false
 }
 
-// Actions
+// Ações
 const atualizarStatus = async () => {
   if (!novoStatus.value) return
-  
   if (novoStatus.value !== chamado.value.status && !comentarioStatus.value) {
-    alert('Por favor, adicione um comentário explicando a mudança de status.')
+    alert('Por favor, adicione um comentário explicando a mudança.')
     return
   }
-
   loadingAction.value = true
   try {
-    await chamadosService.alterarStatus(
-      chamado.value.id, 
-      novoStatus.value, 
-      comentarioStatus.value,
-      arquivoStatus.value
-    )
+    await chamadosService.alterarStatus(chamado.value.id, novoStatus.value, comentarioStatus.value, arquivoStatus.value)
     comentarioStatus.value = ''
     arquivoStatus.value = null
     await fetchChamado() 
-    alert('Status atualizado com sucesso!')
+    alert('Status atualizado!')
   } catch (error) {
-    console.error(error)
     alert('Erro ao atualizar status.')
   } finally {
     loadingAction.value = false
@@ -369,14 +370,9 @@ const atualizarStatus = async () => {
 
 const enviarComentario = async () => {
   if (!novoComentario.value && !arquivoComentario.value) return
-  
   loadingAction.value = true
   try {
-    await chamadosService.adicionarComentario(
-      chamado.value.id, 
-      novoComentario.value,
-      arquivoComentario.value
-    )
+    await chamadosService.adicionarComentario(chamado.value.id, novoComentario.value, arquivoComentario.value)
     novoComentario.value = ''
     arquivoComentario.value = null
     await fetchChamado()
@@ -400,7 +396,7 @@ const enviarArquivo = async () => {
     arquivoSelecionado.value = null
     if(fileInput.value) fileInput.value.value = ''
     await fetchChamado()
-    alert('Arquivo anexado com sucesso!')
+    alert('Arquivo anexado!')
   } catch (error) {
     alert('Erro ao enviar arquivo.')
   } finally {
@@ -413,11 +409,6 @@ const formatDateTime = (dataIso) => {
   return new Date(dataIso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-const formatDataCurta = (dataIso) => {
-  if (!dataIso) return '-'
-  return new Date(dataIso).toLocaleDateString('pt-BR')
-}
-
 const getStatusClass = (status) => {
   const map = {
     'aberto': 'bg-red-50 text-red-700 border-red-200',
@@ -425,19 +416,19 @@ const getStatusClass = (status) => {
     'em_andamento': 'bg-blue-50 text-blue-700 border-blue-200',
     'realizado': 'bg-purple-50 text-purple-700 border-purple-200',
     'concluido': 'bg-green-50 text-green-700 border-green-200',
-    'cancelado': 'bg-gray-50 text-gray-600 border-gray-200'
+    'cancelado': 'bg-gray-50 text-gray-700 border-gray-200'
   }
   return map[status] || 'bg-gray-50 text-gray-700 border-gray-200'
 }
 
 const getUrgenciaClass = (urgencia) => {
   const map = {
-    'critica': 'bg-red-50 text-red-700 border-red-200',
-    'alta': 'bg-orange-50 text-orange-700 border-orange-200',
-    'media': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    'baixa': 'bg-green-50 text-green-700 border-green-200'
+    'critica': 'bg-red-100 text-red-800 border-red-300',
+    'alta': 'bg-orange-100 text-orange-800 border-orange-300',
+    'media': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    'baixa': 'bg-green-100 text-green-800 border-green-300'
   }
-  return map[urgencia] || 'bg-gray-50 text-gray-700 border-gray-200'
+  return map[urgencia] || 'bg-gray-100 text-gray-800 border-gray-300'
 }
 
 onMounted(() => {
