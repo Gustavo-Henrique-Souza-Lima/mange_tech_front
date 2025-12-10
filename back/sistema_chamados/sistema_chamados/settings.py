@@ -29,6 +29,7 @@ INSTALLED_APPS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'https://webappeduu.azurewebsites.net',
+    
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
