@@ -39,7 +39,7 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', # MANTENHA NO TOPO
+    'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -70,16 +70,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sistema_chamados.wsgi.application'
 
-# Database
+if 'WEBSITE_HOSTNAME' in os.environ:
+
+    database_path = Path('/home/site/wwwroot/db.sqlite3')
+else:
+    database_path = BASE_DIR / 'db.sqlite3'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': database_path,
     }
 }
-
-db_from_env = dj_database_url.config(conn_max_age=500)
-DATABASES['default'].update(db_from_env)
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -106,17 +108,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# =========================================================
-# CORS Settings - Configuração Robusta
-# =========================================================
-
-# 1. Desligamos o "Liberar Geral" simples
 CORS_ALLOW_ALL_ORIGINS = False 
 
-# 2. Permitimos envio de Cookies/Tokens
 CORS_ALLOW_CREDENTIALS = True
 
-# 3. Regras Específicas (Whitelist) - Incluindo Azure e Localhost
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",               # Dev Local
     "http://127.0.0.1:5173",               # Dev Local IP
@@ -159,7 +154,7 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle'  
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '30/minute',   # Aumentei levemente para não travar seus testes
+        'anon': '30/minute',   
         'user': '120/minute', 
     }
 }
