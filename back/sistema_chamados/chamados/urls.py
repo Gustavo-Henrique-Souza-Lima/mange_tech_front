@@ -1,4 +1,3 @@
-
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
@@ -11,8 +10,9 @@ from .views import (
     CategoriaViewSet,
     AmbienteViewSet,
     UserProfileViewSet,
-    register_user,  # ← Novo
-    current_user,   # ← Novo
+    AnexoViewSet, 
+    register_user,
+    current_user,
 )
 
 router = DefaultRouter()
@@ -21,6 +21,7 @@ router.register(r'ativos', AtivoViewSet, basename='ativo')
 router.register(r'categorias', CategoriaViewSet, basename='categoria')
 router.register(r'ambientes', AmbienteViewSet, basename='ambiente')
 router.register(r'usuarios', UserProfileViewSet, basename='usuario')
+router.register(r'anexos', AnexoViewSet, basename='anexo') # <--- ADICIONE ESTA LINHA
 
 urlpatterns = [
     # JWT Authentication
