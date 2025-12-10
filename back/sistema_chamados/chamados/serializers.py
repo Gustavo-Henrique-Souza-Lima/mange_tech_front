@@ -146,12 +146,17 @@ class ChamadoStatusHistoryReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChamadoStatusHistory
         fields = ['id', 'status', 'status_display', 'comentario', 
-                 'user', 'created_at', 'anexos']
+                  'user', 'created_at', 'anexos']
         read_only_fields = ['created_at']
     
     def get_anexos(self, obj):
         from .serializers import AnexoSerializer
-        return AnexoSerializer(obj.anexos.all(), many=True).data
+        # CORREÇÃO: Passamos o self.context para o AnexoSerializer saber montar a URL completa
+        return AnexoSerializer(
+            obj.anexos.all(), 
+            many=True, 
+            context=self.context 
+        ).data
 
 
 class ChamadoStatusHistoryWriteSerializer(serializers.ModelSerializer):
