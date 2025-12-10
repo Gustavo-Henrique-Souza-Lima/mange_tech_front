@@ -8,9 +8,9 @@ import Ativos from '../views/Ativos.vue'
 import Chamados from '../views/Chamados.vue'
 import Usuarios from '../views/Usuarios.vue'
 import Configuracoes from '../views/Configuracoes.vue'
-// IMPORTS NOVOS AQUI:
 import ChamadoDetalhes from '../views/ChamadoDetalhes.vue'
 import Ambientes from '../views/Ambientes.vue'
+import AtivoDetalhes from '../views/AtivoDetalhes.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -68,6 +68,12 @@ const router = createRouter({
       path: '/ambientes',
       name: 'ambientes',
       component: Ambientes,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/ativos/:id',
+      name: 'ativo-detalhes',
+      component: AtivoDetalhes,
       meta: { requiresAuth: true }
     },
   ]
