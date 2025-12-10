@@ -8,8 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/",
-    "test": "vitest"  
+    "format": "prettier --write src/"
   },
   "dependencies": {
     "@vueuse/core": "^13.9.0",
