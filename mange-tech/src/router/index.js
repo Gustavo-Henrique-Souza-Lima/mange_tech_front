@@ -54,7 +54,19 @@ const router = createRouter({
       name: 'configuracoes',
       component: Configuracoes,
       meta: { requiresAuth: true }
-    }
+    },
+    {
+      path: '/chamados/:id', 
+      name: 'chamado-detalhes',
+      component: ChamadoDetalhes,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/ambientes',
+      name: 'ambientes',
+      component: Ambientes,
+      meta: { requiresAuth: true }
+    },
   ]
 })
 

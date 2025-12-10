@@ -37,20 +37,6 @@ export default {
     return api.get('/chamados/', { params: filtros })
   },
 
-  // Alterar status
-  async alterarStatus(id, status, comentario = '') {
-    try {
-      const response = await api.post(`/chamados/${id}/alterar_status/`, {
-        status,
-        comentario
-      })
-      return response.data
-    } catch (error) {
-      console.error('Erro ao alterar status:', error)
-      throw error
-    }
-  },
-
   // Atribuir responsável
   async atribuirResponsavel(id, responsavelId, role = 'responsavel_tecnico') {
     try {
@@ -83,6 +69,37 @@ export default {
       return response.data
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error)
+      throw error
+    }
+  },
+
+  async uploadAnexo(chamadoId, arquivo) {
+    try {
+      const formData = new FormData()
+      formData.append('arquivo', arquivo)
+      formData.append('chamado', chamadoId) // O backend espera o ID do chamado
+
+      const response = await api.post('/anexos/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      return response.data
+    } catch (error) {
+      console.error('Erro ao enviar anexo:', error)
+      throw error
+    }
+  },
+
+  async alterarStatus(id, status, comentario = '') {
+    try {
+      const response = await api.post(`/chamados/${id}/alterar_status/`, {
+        status,
+        comentario
+      })
+      return response.data
+    } catch (error) {
+      console.error('Erro ao alterar status:', error)
       throw error
     }
   }
