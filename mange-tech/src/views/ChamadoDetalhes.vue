@@ -18,7 +18,7 @@
           <div>
             <h2 class="text-xl font-bold text-gray-900">{{ chamado.titulo }}</h2>
             <p class="text-sm text-gray-500">
-              Aberto em {{ formatarData(chamado.data_abertura) }} por <span class="font-medium">{{ chamado.solicitante?.nome_completo || chamado.solicitante?.username }}</span>
+              Aberto em {{ formatDateTime(chamado.data_abertura) }} por <span class="font-medium">{{ chamado.solicitante?.nome_completo || chamado.solicitante?.username }}</span>
             </p>
           </div>
           <div class="flex gap-2">
@@ -277,7 +277,7 @@ const enviarArquivo = async () => {
   }
 }
 
-const formatarData = (dataIso) => {
+const formatDateTime = (dataIso) => {
   if (!dataIso) return '-'
   return new Date(dataIso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
