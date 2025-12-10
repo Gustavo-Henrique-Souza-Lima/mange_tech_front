@@ -77,8 +77,8 @@ export default {
     try {
       const formData = new FormData()
       formData.append('arquivo', arquivo)
-      formData.append('chamado', chamadoId) // O backend espera o ID do chamado
-
+      formData.append('chamado', chamadoId) 
+      
       const response = await api.post('/anexos/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
