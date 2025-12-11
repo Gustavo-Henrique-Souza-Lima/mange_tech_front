@@ -5,24 +5,25 @@ from .models import (
     ChamadoResponsavel, ChamadoStatusHistory, Anexo, Notificacao
 )
 
-class UserSerializer(serializers.ModelSerializer):
-    nome_completo = serializers.SerializerMethodField()
-    # Retorna lista de strings ['ADMIN', 'TECNICO']
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    
+    # Adiciona os campos de permissão do User no nível raiz do Profile:
+    is_superuser = serializers.BooleanField(source='user.is_superuser', read_only=True)
     groups = serializers.SlugRelatedField(
+        source='user.groups', 
         many=True,
         read_only=True,
         slug_field='name'
     )
 
     class Meta:
-        model = User
+        model = UserProfile
         fields = [
-            'id', 'username', 'first_name', 'last_name', 'email', 
-            'nome_completo', 'is_active', 'is_superuser', 'last_login', 'groups'
+            'id', 'user', 'telefone', 'endereco', 'nif', 'created_at',
+            # Novos campos de permissão (elevados)
+            'is_superuser', 'groups' 
         ]
-    
-    def get_nome_completo(self, obj):
-        return obj.get_full_name() or obj.username
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
