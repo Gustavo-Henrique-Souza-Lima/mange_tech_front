@@ -36,9 +36,9 @@
               <p class="text-sm text-gray-500 mb-4">@{{ usuario.user?.username }}</p>
 
               <div class="flex justify-center mb-6">
-                <span v-if="usuario.user?.is_superuser" class="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full uppercase tracking-wide">Administrador</span>
-                <span v-else-if="usuario.user?.groups?.includes('TECNICO')" class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">Técnico</span>
+                <span v-if="usuario.user?.is_superuser || usuario.user?.groups?.includes('ADMIN')" class="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full uppercase tracking-wide">Administrador</span>
                 <span v-else-if="usuario.user?.groups?.includes('SUPERVISOR')" class="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full uppercase tracking-wide">Supervisor</span>
+                <span v-else-if="usuario.user?.groups?.includes('TECNICO')" class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">Técnico</span>
                 <span v-else class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full uppercase tracking-wide">Usuário</span>
               </div>
 
@@ -211,7 +211,6 @@ const fecharModal = () => {
 const salvar = async () => {
   salvando.value = true
   try {
-    // O ID do perfil do usuário logado é sempre o ID do próprio objeto retornado pelo /me/
     const id = usuario.value.id 
     
     // 1. Atualiza User (Nome, Email)
