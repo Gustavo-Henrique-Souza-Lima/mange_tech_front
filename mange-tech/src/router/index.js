@@ -96,7 +96,7 @@ const router = createRouter({
 // --- GUARD DE PROTEÇÃO ---
 router.beforeEach(async (to, from, next) => {
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-    const isAuthenticated = authService.isAuthenticated() // Variável definida aqui
+    const isAuthenticated = authService.isAuthenticated() 
 
     if (requiresAuth && !isAuthenticated) {
         return next('/login')
@@ -123,7 +123,6 @@ router.beforeEach(async (to, from, next) => {
 
             let temPermissao = false;
 
-            // RBAC Logic
             if (isSuperUser) {
                 temPermissao = true;
             }
@@ -139,13 +138,11 @@ router.beforeEach(async (to, from, next) => {
 
         } catch (error) {
             console.error('Erro de verificação de permissão no router:', error)
-            // Erro na API ou token inválido, forçar logout
             authService.logout()
             return next('/login')
         }
     }
 
-    // 4. Continua a Navegação (Ponto de parada se todas as verificações passarem)
     next()
 })
 export default router
