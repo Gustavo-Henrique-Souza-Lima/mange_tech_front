@@ -93,7 +93,7 @@ const router = createRouter({
   ]
 })
 
-// --- GUARD DE PROTEÇÃO CORRIGIDO E FINALIZADO ---
+// --- GUARD DE PROTEÇÃO (RBAC) ---
 router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isAuthenticated = authService.isAuthenticated()
@@ -107,8 +107,13 @@ router.beforeEach(async (to, from, next) => {
   if (isAuthenticated && to.meta.roles) {
     try {
       const res = await usuariosService.getMe()
-      const user = res.data.user
       
+      const user = res.data.user || res.data
+      
+      if (!user) {
+        throw new Error('Dados do usuário não encontrados na resposta.')
+      }
+
       const isSuperUser = user.is_superuser
       const userGroups = user.groups || [] 
       
@@ -117,21 +122,18 @@ router.beforeEach(async (to, from, next) => {
       if (isSuperUser) {
           temPermissao = true;
       } 
-      
       else {
           const requiredRoles = to.meta.roles;
           temPermissao = requiredRoles.some(role => userGroups.includes(role));
       }
       
       if (!temPermissao) {
-        console.warn(`⛔ Acesso negado a ${to.path} para usuário ${user.username}. Redirecionando para Chamados.`)
+        console.warn(`⛔ Acesso negado a ${to.path}. User: ${user.username}, Roles: [${userGroups}], Super: ${isSuperUser}`)
         return next('/chamados') 
       }
       
     } catch (error) {
       console.error('Erro de verificação de permissão no router:', error)
-      
-      
       authService.logout()
       return next('/login')
     }

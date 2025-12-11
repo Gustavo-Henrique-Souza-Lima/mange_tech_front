@@ -7,6 +7,7 @@ from .models import (
 
 class UserSerializer(serializers.ModelSerializer):
     nome_completo = serializers.SerializerMethodField()
+    # Retorna lista de strings ['ADMIN', 'TECNICO']
     groups = serializers.SlugRelatedField(
         many=True,
         read_only=True,
