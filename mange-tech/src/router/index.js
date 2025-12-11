@@ -108,14 +108,17 @@ router.beforeEach(async (to, from, next) => {
     try {
       const res = await usuariosService.getMe()
       console.log("🔍 Resposta COMPLETA da API /usuarios/me/:", res.data)
-      const user = res.data.user || res.data
 
-      if (!user) {
-        throw new Error('Dados do usuário não encontrados na resposta.')
+      const apiResponse = res.data || {}
+
+      const userPayload = apiResponse.user || apiResponse
+
+      if (!userPayload || !userPayload.id) {
+        throw new Error('Dados do usuário ausentes ou inválidos na resposta da API.')
       }
 
-      const isSuperUser = !!user.is_superuser || false
-      const userGroups = user.groups || []
+      const isSuperUser = !!userPayload.is_superuser
+      const userGroups = userPayload.groups || []
 
       let temPermissao = false;
 
@@ -128,7 +131,7 @@ router.beforeEach(async (to, from, next) => {
       }
 
       if (!temPermissao) {
-        console.warn(`⛔ Acesso negado a ${to.path}. User: ${user.username}, Roles: [${userGroups}], Super: ${isSuperUser}`)
+        console.warn(`⛔ Acesso negado a ${to.path}. User: ${userPayload.username}, Roles: [${userGroups}], Super: ${isSuperUser}`)
         return next('/chamados')
       }
 
