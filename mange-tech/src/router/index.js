@@ -88,42 +88,44 @@ const router = createRouter({
       path: '/perfil',
       name: 'meu-perfil',
       component: MeuPerfil,
-      meta: { requiresAuth: true } // Todos logados podem ver
+      meta: { requiresAuth: true } 
     },
   ]
 })
 
-// --- GUARD DE PROTEÇÃO ---
+// --- GUARD DE PROTEÇÃO CORRIGIDO ---
 router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isAuthenticated = authService.isAuthenticated()
 
   if (requiresAuth && !isAuthenticated) {
     return next('/login')
-  }
-  else if ((to.path === '/login' || to.path === '/cadastro') && isAuthenticated) {
-    return next('/')
+  } else if ((to.path === '/login' || to.path === '/cadastro') && isAuthenticated) {
+    return next('/') 
   }
 
   if (isAuthenticated && to.meta.roles) {
     try {
       const res = await usuariosService.getMe()
       const user = res.data.user
-
+      
       const isSuperUser = user.is_superuser
-
-      const userGroups = user.groups || []
-
-      const temPermissao = isSuperUser || to.meta.roles.some(role => userGroups.includes(role))
-
-      if (!temPermissao) {
-        console.warn(`⛔ Acesso negado a ${to.path}. Redirecionando para Chamados.`)
-        return next('/chamados') // Joga usuário comum para tela segura
+      const userGroups = user.groups || [] 
+      
+      if (isSuperUser) {
+        return next() 
+      }
+      
+      const temPermissaoDeGrupo = to.meta.roles.some(role => userGroups.includes(role))
+      
+      if (!temPermissaoDeGrupo) {
+        console.warn(`⛔ Acesso negado a ${to.path} para usuário ${user.username}. Redirecionando para Chamados.`)
+        return next('/chamados') 
       }
     } catch (error) {
-      console.error('Erro ao verificar permissão:', error)
-
-      return next('/chamados')
+      console.error('Erro de verificação de permissão:', error)
+      authService.logout()
+      return next('/login')
     }
   }
 
