@@ -15,20 +15,16 @@ import AtivoDetalhes from '../views/AtivosDetalhes.vue'
 import UsuarioDetalhes from '@/views/UsuarioDetalhes.vue'
 import MeuPerfil from '@/views/MeuPerfil.vue'
 
-// ----------------------------------------------------
-// 1. DADOS MOCKADOS E CONTROLE
-// ----------------------------------------------------
 const MOCKED_USER_ADMIN = {
     id: 1,
     username: 'admin_test',
     email: 'adm@adm.com',
-    is_superuser: true,           // SIMULA PERMISSÃO DE ADMIN/SUPER
-    groups: ['ADMIN', 'TECNICO'], // SIMULA GRUPOS
+    is_superuser: true,           
+    groups: ['ADMIN', 'TECNICO'], 
     first_name: 'Admin',
     last_name: 'test'
 };
 
-// Variável de controle (Definida em .env.local como VITE_MOCK_MODE=true)
 const IS_MOCK_MODE = import.meta.env.VITE_MOCK_MODE === 'true';
 
 const router = createRouter({
@@ -109,18 +105,22 @@ const router = createRouter({
     ]
 })
 
-// --- GUARD DE PROTEÇÃO (RBAC) ---
 router.beforeEach(async (to, from, next) => {
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
     const isAuthenticated = authService.isAuthenticated() 
 
+    console.log(`🧭 Tentativa de navegação para: ${to.path}. Requer Autenticação: ${requiresAuth}. Está Autenticado: ${isAuthenticated}.`);
+
     if (requiresAuth && !isAuthenticated) {
+        console.log(`🔒 Acesso negado: Rota protegida e não autenticado. Redirecionando para /login.`);
         return next('/login')
     } else if ((to.path === '/login' || to.path === '/cadastro') && isAuthenticated) {
+        console.log(`🏠 Já autenticado. Redirecionando de ${to.path} para /.`);
         return next('/')
     }
 
     if (isAuthenticated && to.meta.roles) {
+        console.log(`🔑 Verificando permissões (RBAC) para a rota: ${to.path}.`);
         try {
             let data;
 
@@ -133,15 +133,14 @@ router.beforeEach(async (to, from, next) => {
             }
             
             if (!data) {
-                console.error('API /me/ retornou payload vazio ou inválido. Forçando logout.');
+                console.error('🛑 API /me/ retornou payload vazio ou inválido. Iniciando fluxo de erro.');
                 throw new Error('Erro ao obter dados de permissão.'); 
             }
 
             const userPayload = data.user || data 
             
             if (!userPayload || typeof userPayload !== 'object' || !('is_superuser' in userPayload)) {
-                 // Deve pegar casos onde o JSON é malformado ou incompleto
-                console.error('Payload do usuário logado é inválido ou incompleto. Falha na leitura de permissão.');
+                console.error('🛑 Payload do usuário é inválido ou incompleto. Falha na leitura de permissão.');
                 throw new Error('Payload inválido.');
             }
 
@@ -161,19 +160,25 @@ router.beforeEach(async (to, from, next) => {
             }
 
             if (!temPermissao) {
-                console.warn(`⛔ Acesso negado a ${to.path}. User: ${userPayload.username}, Roles: [${userGroups}], Super: ${isSuperUser}`)
+                console.warn(`⛔ Acesso negado a ${to.path}. User: ${userPayload.username}, Roles: [${userGroups}], Super: ${isSuperUser}. Redirecionando para /chamados.`);
                 return next('/chamados')
             }
+            
+            console.log(`🔓 Permissão concedida para ${to.path}.`);
 
         } catch (error) {
-            console.error('Erro de verificação de permissão no router:', error)
+            console.error('🚨 Erro crítico no fluxo de permissão:', error.message);
             if (!IS_MOCK_MODE) {
+                console.log('🚪 Forçando logout devido ao erro de permissão.');
                 authService.logout()
                 return next('/login')
+            } else {
+                console.warn('⚠️ Em Modo MOCK, erro ignorado para demonstração.');
             }
         }
     }
 
+    console.log(`⏭️ Navegação liberada para ${to.path}.`);
     next()
 })
 
