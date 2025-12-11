@@ -27,7 +27,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = UserProfile
-        fields = ['user', 'telefone', 'endereco', 'nif', 'created_at', 'updated_at']
+        fields = ['id', 'user', 'telefone', 'endereco', 'nif', 'created_at']
 
 class CategoriaSerializer(serializers.ModelSerializer):
     total_ativos = serializers.SerializerMethodField()
