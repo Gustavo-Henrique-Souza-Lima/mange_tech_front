@@ -7,7 +7,7 @@ from django.db import transaction
 
 from .base import BaseViewSet
 from ..models import UserProfile
-from ..serializers import UserProfileSerializer
+from ..serializers import UserProfileSerializer, UserSerializer 
 from ..permissions import IsAdminUser, IsOwnerOrReadOnly 
 
 class UserProfileViewSet(BaseViewSet):
@@ -20,9 +20,6 @@ class UserProfileViewSet(BaseViewSet):
         return UserProfile.objects.select_related('user').all()
     
     def get_permissions(self):
-        """
-        Define permissões baseadas na ação.
-        """
         if self.action in ['list', 'destroy']:
             return [IsAuthenticated()] 
         
@@ -35,10 +32,6 @@ class UserProfileViewSet(BaseViewSet):
         return [IsAuthenticated()]
 
     def create(self, request, *args, **kwargs):
-        """
-        Cria usuário via Painel Administrativo.
-        Permite definir cargo se quem cria tiver permissão.
-        """
         data = request.data
         
         cargo_solicitado = data.get('cargo', 'USUARIO')
@@ -51,10 +44,9 @@ class UserProfileViewSet(BaseViewSet):
                 {'error': 'Apenas Administradores podem criar usuários com nível Admin ou Supervisor.'},
                 status=status.HTTP_403_FORBIDDEN
             )
-
         try:
             with transaction.atomic():
-             
+                
                 if User.objects.filter(username=data.get('username')).exists():
                     return Response({'error': 'Nome de usuário já existe.'}, status=400)
                 if User.objects.filter(email=data.get('email')).exists():
@@ -97,20 +89,20 @@ class UserProfileViewSet(BaseViewSet):
         except Exception as e:
             return Response({'error': f'Erro ao criar usuário: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
+
     @action(detail=False, methods=['get'])
     def me(self, request):
         """
-        Retorna o perfil do usuário logado.
+        Retorna os dados do User logado,
+        forçando o uso do UserSerializer para incluir 'is_superuser' e 'groups'
+        no nível superior do JSON.
         """
-        profile, created = UserProfile.objects.get_or_create(user=request.user)
-        serializer = self.get_serializer(profile)
+        user = request.user
+        serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data)
     
     @action(detail=True, methods=['patch'])
     def update_user(self, request, pk=None):
-        """
-        Atualiza dados do User (nome, email, status, cargo).
-        """
         profile = self.get_object()
         user = profile.user
         data = request.data
@@ -182,7 +174,7 @@ class UserProfileViewSet(BaseViewSet):
                     user.is_staff = True 
                     grupo, _ = Group.objects.get_or_create(name='TECNICO')
                     user.groups.add(grupo)
-                
+                    
                 elif novo_cargo == 'padrao' or novo_cargo == 'USUARIO':
                     pass
                 
