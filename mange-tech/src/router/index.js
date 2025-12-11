@@ -52,7 +52,6 @@ const router = createRouter({
       component: Usuarios,
       meta: { requiresAuth: true }
     },
-
     {
       path: '/usuarios/:id',
       name: 'usuario-detalhes',
@@ -65,7 +64,6 @@ const router = createRouter({
       component: Configuracoes,
       meta: { requiresAuth: true }
     },
-    // ROTAS NOVAS
     {
       path: '/chamados/:id',
       name: 'chamado-detalhes',
