@@ -5,10 +5,33 @@ from .models import (
     ChamadoResponsavel, ChamadoStatusHistory, Anexo, Notificacao
 )
 
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from .models import (
+    UserProfile, Categoria, Ambiente, Ativo, Chamado, 
+    ChamadoResponsavel, ChamadoStatusHistory, Anexo, Notificacao
+)
+
+class UserSerializer(serializers.ModelSerializer):
+    nome_completo = serializers.SerializerMethodField()
+    groups = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'first_name', 'last_name', 'email', 
+            'nome_completo', 'is_active', 'is_superuser', 'last_login', 'groups'
+        ]
+    
+    def get_nome_completo(self, obj):
+        return obj.get_full_name() or obj.username
+
 class UserProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     
-    # Adiciona os campos de permissão do User no nível raiz do Profile:
     is_superuser = serializers.BooleanField(source='user.is_superuser', read_only=True)
     groups = serializers.SlugRelatedField(
         source='user.groups', 
@@ -21,7 +44,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             'id', 'user', 'telefone', 'endereco', 'nif', 'created_at',
-            # Novos campos de permissão (elevados)
             'is_superuser', 'groups' 
         ]
 
@@ -34,11 +56,17 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=6)
     class Meta:
-        model = UserProfile
-        fields = ['id', 'user', 'telefone', 'endereco', 'nif', 'created_at']
+        model = User
+        fields = ['username', 'email', 'password', 'first_name', 'last_name']
+    
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
 
 class CategoriaSerializer(serializers.ModelSerializer):
     total_ativos = serializers.SerializerMethodField()
