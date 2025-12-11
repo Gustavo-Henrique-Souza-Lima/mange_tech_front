@@ -73,7 +73,12 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ perfil.nif || '-' }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatarData(perfil.created_at) }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <router-link :to="`/usuarios/${perfil.id}`" class="text-gray-400 hover:text-indigo-600 mr-3" title="Ver Detalhes">
+                <router-link 
+                  v-if="perfil.id" 
+                  :to="{ name: 'usuario-detalhes', params: { id: perfil.id } }" 
+                  class="text-gray-400 hover:text-indigo-600 mr-3 inline-block" 
+                  title="Ver Detalhes"
+                >
                   <Eye :size="18" />
                 </router-link>
                 <button @click="abrirModalEditar(perfil)" class="text-blue-400 hover:text-blue-600 mr-3" title="Editar">
@@ -105,7 +110,11 @@
                 <p class="text-xs text-gray-500">@{{ perfil.user?.username }}</p>
               </div>
             </div>
-            <router-link :to="`/usuarios/${perfil.id}`" class="text-gray-400 hover:text-indigo-600">
+            <router-link 
+              v-if="perfil.id"
+              :to="{ name: 'usuario-detalhes', params: { id: perfil.id } }" 
+              class="text-gray-400 hover:text-indigo-600"
+            >
               <ChevronRight :size="20" />
             </router-link>
           </div>

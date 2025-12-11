@@ -158,18 +158,23 @@ const error = ref(null)
 const carregarUsuario = async () => {
   loading.value = true
   error.value = null
+  
+  // 1. Pega o ID da rota
+  const id = route.params.id
+
+  // 2. Proteção contra ID inválido
+  if (!id || id === 'undefined') {
+    error.value = 'ID do usuário inválido ou não fornecido.'
+    loading.value = false
+    return
+  }
+
   try {
-    const id = route.params.id
-    console.log('🔄 Carregando detalhes do ID:', id)
-    
-    // Busca pelo ID
     const response = await usuariosService.getById(id)
     usuario.value = response.data
-    
-    console.log('✅ Usuário carregado:', usuario.value)
   } catch (err) {
-    console.error('❌ Erro ao carregar:', err)
-    error.value = err.response?.data?.detail || 'Não foi possível carregar as informações do usuário.'
+    console.error(err)
+    error.value = err.response?.data?.detail || 'Usuário não encontrado.'
   } finally {
     loading.value = false
   }
