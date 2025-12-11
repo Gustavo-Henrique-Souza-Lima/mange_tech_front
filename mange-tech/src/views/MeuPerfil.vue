@@ -25,7 +25,11 @@
                     {{ getIniciais(usuario) }}
                   </div>
                 </div>
-                <div class="absolute bottom-2 right-2 h-6 w-6 bg-green-500 border-4 border-white rounded-full" title="Online"></div>
+                <div 
+                    class="absolute bottom-2 right-2 h-6 w-6 border-4 border-white rounded-full" 
+                    :class="usuario.user?.is_active ? 'bg-green-500' : 'bg-red-500'" 
+                    :title="usuario.user?.is_active ? 'Ativo' : 'Inativo'"
+                ></div>
               </div>
 
               <h2 class="text-xl font-bold text-gray-900">{{ getNomeCompleto(usuario) }}</h2>
@@ -33,8 +37,8 @@
 
               <div class="flex justify-center mb-6">
                 <span v-if="usuario.user?.is_superuser" class="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full uppercase tracking-wide">Administrador</span>
-                <span v-else-if="isTecnico" class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">Técnico</span>
-                <span v-else-if="isSupervisor" class="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full uppercase tracking-wide">Supervisor</span>
+                <span v-else-if="usuario.user?.groups?.includes('TECNICO')" class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">Técnico</span>
+                <span v-else-if="usuario.user?.groups?.includes('SUPERVISOR')" class="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full uppercase tracking-wide">Supervisor</span>
                 <span v-else class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full uppercase tracking-wide">Usuário</span>
               </div>
 
@@ -158,7 +162,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import usuariosService from '@/api/usuariosService'
 import { User, Shield, Edit2, X } from 'lucide-vue-next'
 
@@ -171,9 +175,6 @@ const form = reactive({
   first_name: '', last_name: '', email: '',
   telefone: '', nif: '', endereco: ''
 })
-
-const isTecnico = computed(() => usuario.value?.user?.groups?.includes('TECNICO'))
-const isSupervisor = computed(() => usuario.value?.user?.groups?.includes('SUPERVISOR'))
 
 const carregarDados = async () => {
   loading.value = true
@@ -210,18 +211,17 @@ const fecharModal = () => {
 const salvar = async () => {
   salvando.value = true
   try {
-    const id = usuario.value.id
+    // O ID do perfil do usuário logado é sempre o ID do próprio objeto retornado pelo /me/
+    const id = usuario.value.id 
     
-    // Atualiza User (Nome, Email)
-    // O backend permite que o próprio dono edite esses campos básicos sem ser admin
+    // 1. Atualiza User (Nome, Email)
     await usuariosService.updateUser(id, {
       first_name: form.first_name,
       last_name: form.last_name,
       email: form.email
-      // Não enviamos cargo nem is_active aqui, pois usuário comum não pode mudar isso
     })
 
-    // Atualiza Profile (Endereço, Telefone)
+    // 2. Atualiza Profile (Endereço, Telefone, NIF)
     await usuariosService.updateProfile(id, {
       telefone: form.telefone,
       endereco: form.endereco,
@@ -242,7 +242,7 @@ const salvar = async () => {
 // Helpers
 const getNomeCompleto = (u) => u?.user?.first_name ? `${u.user.first_name} ${u.user.last_name}` : u?.user?.username || 'Usuário'
 const getIniciais = (u) => (u?.user?.username || 'U').substring(0, 2).toUpperCase()
-const formatarData = (d) => d ? new Date(d).toLocaleDateString('pt-BR') : '-'
+const formatarData = (d) => d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'
 const formatarDataHora = (d) => d ? new Date(d).toLocaleString('pt-BR') : '-'
 
 onMounted(() => {

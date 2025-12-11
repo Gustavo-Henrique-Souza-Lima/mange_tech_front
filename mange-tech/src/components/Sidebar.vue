@@ -42,10 +42,13 @@
         </router-link>
 
         <router-link to="/perfil"
-          class="flex items-center gap-3 px-4 py-3 text-gray-600 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
-          active-class="bg-indigo-50 text-indigo-600 font-medium">
+          class="flex items-center gap-3 px-4 py-3 text-gray-600 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors relative"
+          :class="{ 'bg-indigo-50 text-indigo-600 font-medium': isActive('/perfil') }"
+        >
           <User :size="20" />
           <span class="text-sm font-medium">Meu Perfil</span>
+          
+          <div :title="cargoDisplay.label" class="absolute right-3 top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full border border-white" :class="cargoDisplay.color"></div>
         </router-link>
 
         <router-link to="/configuracoes"
@@ -78,7 +81,7 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { LayoutDashboard, Wrench, Package, Users, Settings, LogOut, MapPin } from 'lucide-vue-next'
+import { LayoutDashboard, Wrench, Package, Users, Settings, LogOut, MapPin, User } from 'lucide-vue-next' // Adicionei User aqui
 import authService from '@/api/authService'
 import usuariosService from '@/api/usuariosService'
 
@@ -90,13 +93,36 @@ const isAuthRoute = computed(() => {
   return ['/login', '/cadastro'].includes(route.path)
 })
 
+const isActive = (path) => {
+  return route.path === path
+}
+
+// Computado para exibir o cargo e a cor no ícone
+const cargoDisplay = computed(() => {
+  if (!currentUser.value) {
+    return { label: 'Visitante', color: 'bg-gray-400' }
+  }
+  const user = currentUser.value.user
+  const groups = user.groups || []
+
+  if (user.is_superuser || groups.includes('ADMIN')) {
+    return { label: 'Administrador', color: 'bg-purple-600' }
+  }
+  if (groups.includes('SUPERVISOR')) {
+    return { label: 'Supervisor', color: 'bg-orange-500' }
+  }
+  if (groups.includes('TECNICO')) {
+    return { label: 'Técnico', color: 'bg-blue-500' }
+  }
+  return { label: 'Usuário Padrão', color: 'bg-green-500' }
+})
+
 // Função auxiliar para checar permissão no template
 const temPermissao = (cargosPermitidos) => {
   if (!currentUser.value) return false
   const user = currentUser.value.user
-  if (user.is_superuser) return true // Admin vê tudo
+  if (user.is_superuser) return true 
 
-  // Verifica se tem algum dos grupos permitidos
   if (user.groups && Array.isArray(user.groups)) {
     return user.groups.some(g => cargosPermitidos.includes(g))
   }
