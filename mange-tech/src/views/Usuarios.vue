@@ -52,7 +52,12 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="perfil in usuariosFiltrados" :key="perfil.user?.id || perfil.id" class="hover:bg-gray-50 transition-colors group">
+            <tr 
+              v-for="perfil in usuariosFiltrados" 
+              :key="perfil.user?.id || perfil.id" 
+              @click="irParaDetalhes(perfil.id)"
+              class="hover:bg-indigo-50 transition-colors group cursor-pointer"
+            >
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="flex-shrink-0 h-10 w-10">
@@ -72,19 +77,12 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ perfil.nif || '-' }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatarData(perfil.created_at) }}</td>
+              
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <router-link 
-                  v-if="perfil.id" 
-                  :to="{ name: 'usuario-detalhes', params: { id: perfil.id } }" 
-                  class="text-gray-400 hover:text-indigo-600 mr-3 inline-block" 
-                  title="Ver Detalhes"
-                >
-                  <Eye :size="18" />
-                </router-link>
-                <button @click="abrirModalEditar(perfil)" class="text-blue-400 hover:text-blue-600 mr-3" title="Editar">
+                <button @click.stop="abrirModalEditar(perfil)" class="text-blue-400 hover:text-blue-600 mr-3 p-1 rounded hover:bg-blue-50 transition" title="Editar">
                   <Edit2 :size="18" />
                 </button>
-                <button @click="confirmarRemocao(perfil)" class="text-red-400 hover:text-red-600" title="Remover">
+                <button @click.stop="confirmarRemocao(perfil)" class="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition" title="Remover">
                   <Trash2 :size="18" />
                 </button>
               </td>
@@ -99,7 +97,12 @@
       </div>
 
       <div class="lg:hidden space-y-4">
-        <div v-for="perfil in usuariosFiltrados" :key="perfil.user?.id || perfil.id" class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div 
+          v-for="perfil in usuariosFiltrados" 
+          :key="perfil.user?.id || perfil.id" 
+          @click="irParaDetalhes(perfil.id)"
+          class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm active:bg-gray-50 cursor-pointer transition-colors"
+        >
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
               <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border border-indigo-200">
@@ -110,13 +113,9 @@
                 <p class="text-xs text-gray-500">@{{ perfil.user?.username }}</p>
               </div>
             </div>
-            <router-link 
-              v-if="perfil.id"
-              :to="{ name: 'usuario-detalhes', params: { id: perfil.id } }" 
-              class="text-gray-400 hover:text-indigo-600"
-            >
+            <div class="text-gray-400">
               <ChevronRight :size="20" />
-            </router-link>
+            </div>
           </div>
           
           <div class="space-y-2 text-sm text-gray-600 mb-4 border-t border-gray-100 pt-3">
@@ -125,8 +124,8 @@
           </div>
 
           <div class="flex gap-2">
-            <button @click="abrirModalEditar(perfil)" class="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-blue-100 transition">Editar</button>
-            <button @click="confirmarRemocao(perfil)" class="flex-1 py-2 bg-red-50 text-red-600 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-red-100 transition">Remover</button>
+            <button @click.stop="abrirModalEditar(perfil)" class="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-blue-100 transition">Editar</button>
+            <button @click.stop="confirmarRemocao(perfil)" class="flex-1 py-2 bg-red-50 text-red-600 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-red-100 transition">Remover</button>
           </div>
         </div>
         
@@ -149,7 +148,6 @@
         </div>
 
         <form @submit.prevent="salvarUsuario" class="p-6 space-y-5">
-          
           <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-4">
             <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Credenciais de Acesso</h4>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -245,9 +243,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router' 
 import { Plus, Search, X, Edit2, Trash2, Eye, ChevronRight } from 'lucide-vue-next'
 import usuariosService from '@/api/usuariosService'
 import authService from '@/api/authService'
+
+const router = useRouter() 
 
 const usuarios = ref([])
 const loading = ref(false)
@@ -290,6 +291,12 @@ const buscarUsuarios = async () => {
     error.value = err.message || 'Erro ao carregar usuários'
   } finally {
     loading.value = false
+  }
+}
+
+const irParaDetalhes = (id) => {
+  if (id) {
+    router.push({ name: 'usuario-detalhes', params: { id } })
   }
 }
 
@@ -379,7 +386,6 @@ const salvarUsuario = async () => {
         last_name: formUsuario.value.last_name
       })
       
-      // Pequeno delay para garantir que o usuário foi criado antes de atualizar o perfil
       await new Promise(resolve => setTimeout(resolve, 800))
       
       const todosResponse = await usuariosService.getAll()
