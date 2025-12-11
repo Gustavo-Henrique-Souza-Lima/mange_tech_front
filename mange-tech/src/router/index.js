@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import authService from '@/api/authService'
 
 import Login from '../views/Login.vue'
-import Cadastro from '../views/Cadastro.vue'  
+import Cadastro from '../views/Cadastro.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Ativos from '../views/Ativos.vue'
 import Chamados from '../views/Chamados.vue'
@@ -11,6 +11,7 @@ import Configuracoes from '../views/Configuracoes.vue'
 import ChamadoDetalhes from '../views/ChamadoDetalhes.vue'
 import Ambientes from '../views/Ambientes.vue'
 import AtivoDetalhes from '../views/AtivosDetalhes.vue'
+import UsuarioDetalhes from '../views/UsuarioDetalhes.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,6 +52,13 @@ const router = createRouter({
       component: Usuarios,
       meta: { requiresAuth: true }
     },
+
+    {
+      path: '/usuarios/:id',
+      name: 'usuario-detalhes',
+      component: UsuarioDetalhes,
+      meta: { requiresAuth: true }
+    },
     {
       path: '/configuracoes',
       name: 'configuracoes',
@@ -59,7 +67,7 @@ const router = createRouter({
     },
     // ROTAS NOVAS
     {
-      path: '/chamados/:id', 
+      path: '/chamados/:id',
       name: 'chamado-detalhes',
       component: ChamadoDetalhes,
       meta: { requiresAuth: true }
