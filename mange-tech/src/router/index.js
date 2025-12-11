@@ -93,7 +93,7 @@ const router = createRouter({
   ]
 })
 
-// --- GUARD DE PROTEÇÃO CORRIGIDO ---
+// --- GUARD DE PROTEÇÃO CORRIGIDO E FINALIZADO ---
 router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isAuthenticated = authService.isAuthenticated()
@@ -112,16 +112,21 @@ router.beforeEach(async (to, from, next) => {
       const isSuperUser = user.is_superuser
       const userGroups = user.groups || [] 
       
+      let temPermissao = false;
+      
       if (isSuperUser) {
-        return next() 
+          temPermissao = true;
+      } 
+      
+      else {
+          temPermissao = to.meta.roles.some(role => userGroups.includes(role));
       }
       
-      const temPermissaoDeGrupo = to.meta.roles.some(role => userGroups.includes(role))
-      
-      if (!temPermissaoDeGrupo) {
+      if (!temPermissao) {
         console.warn(`⛔ Acesso negado a ${to.path} para usuário ${user.username}. Redirecionando para Chamados.`)
         return next('/chamados') 
       }
+      
     } catch (error) {
       console.error('Erro de verificação de permissão:', error)
       authService.logout()
