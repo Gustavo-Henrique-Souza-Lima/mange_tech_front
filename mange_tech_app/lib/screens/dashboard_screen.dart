@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/info_card.dart';
-import '../services/api_services.dart'; // ✅ Corrigido (era api_services.dart)
+import '../services/api_services.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -41,13 +41,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  // Helper para definir cores baseadas no status
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'aberto':
+        return Colors.orange;
+      case 'em_andamento':
+        return Colors.blue;
+      case 'aguardando_responsaveis':
+        return Colors.purple; // Aguardando
+      case 'realizado':
+      case 'concluido':
+        return Colors.green;
+      case 'cancelado':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // Helper para deixar o nome do status bonito na tela
+  String _getStatusTitle(String status) {
+    switch (status.toLowerCase()) {
+      case 'aberto': return 'Aberto';
+      case 'em_andamento': return 'Em Andamento';
+      case 'aguardando_responsaveis': return 'Aguardando';
+      case 'realizado': return 'Realizado';
+      case 'concluido': return 'Concluído';
+      case 'cancelado': return 'Cancelado';
+      default: return status;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF5F7FA), // Fundo levemente cinza
       drawer: AppDrawer(),
       appBar: AppBar(
-        title: Text('Dashboard'),
-        centerTitle: false,
+        title: Text('Dashboard', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black87),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
@@ -68,10 +103,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         SizedBox(height: 16),
                         Text(error!, textAlign: TextAlign.center),
                         SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: load,
-                          child: Text('Tentar Novamente'),
-                        ),
+                        ElevatedButton(onPressed: load, child: Text('Tentar Novamente')),
                       ],
                     ),
                   )
@@ -79,113 +111,179 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
+                        // CARDS DO TOPO
+                      Wrap(
+                          spacing: 16, // Espaçamento horizontal maior
+                          runSpacing: 16, // Espaçamento vertical maior
                           children: [
                             InfoCard(
                               title: 'Chamados Abertos',
                               value: '${data!['chamadosAbertos'] ?? 0}',
-                              subtitle: '+12% vs mês anterior',
+                              subtitle: 'Fila de atendimento',
+                              icon: Icons.assignment_late_rounded, // Ícone de alerta
+                              color: Colors.orange, // Cor Laranja
                             ),
                             InfoCard(
-                              title: 'Tempo Médio Resolução',
+                              title: 'Tempo Médio',
                               value: '${data!['tempoMedio'] ?? '-'}',
-                              subtitle: '-8% melhora contínua',
+                              subtitle: 'Horas por chamado',
+                              icon: Icons.timer_outlined, // Ícone de tempo
+                              color: Colors.blue, // Cor Azul
                             ),
                             InfoCard(
-                              title: 'Ativos Ativos',
+                              title: 'Ativos Operantes',
                               value: '${data!['ativosAtivos'] ?? 0}',
-                              subtitle: '+3% vs mês anterior',
+                              subtitle: 'Em funcionamento',
+                              icon: Icons.precision_manufacturing_outlined, // Ícone industrial
+                              color: Colors.purple, // Cor Roxa
                             ),
                             InfoCard(
-                              title: 'Taxa de Satisfação',
+                              title: 'Satisfação',
                               value: '${data!['satisfacao'] ?? 0}%',
-                              subtitle: '+2% avaliações positivas',
+                              subtitle: 'Avaliação média',
+                              icon: Icons.sentiment_very_satisfied_rounded, // Ícone feliz
+                              color: Colors.green, // Cor Verde
                             ),
                           ],
                         ),
-                        SizedBox(height: 20),
+                        SizedBox(height: 24),
+
+                        // GRÁFICO DE PIZZA MODERNO
                         Card(
-                          child: Container(
-                            padding: EdgeInsets.all(16),
-                            width: double.infinity,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          child: Padding(
+                            padding: EdgeInsets.all(20),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Gráfico de Status dos Chamados',
-                                  style: TextStyle(color: Colors.grey[700]),
+                                  'Status dos Chamados',
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800]),
                                 ),
-                                SizedBox(height: 12),
-                                Container(
-                                  height: 200,
-                                  child: PieChart(
-                                    PieChartData(
-                                      sections: [
-                                        PieChartSectionData(
-                                          value: (data!['grafico']?['abertos'] ?? 0)
-                                              .toDouble(),
-                                          title: 'Abertos',
-                                          radius: 60,
-                                          color: Colors.orange,
+                                SizedBox(height: 24),
+                                Row(
+                                  children: [
+                                    // O Gráfico
+                                    Expanded(
+                                      flex: 3,
+                                      child: SizedBox(
+                                        height: 200,
+                                        child: PieChart(
+                                          PieChartData(
+                                            sectionsSpace: 2,
+                                            centerSpaceRadius: 40,
+                                            sections: (data!['grafico'] as List).map<PieChartSectionData>((item) {
+                                              final double valor = (item['total'] as int).toDouble();
+                                              final String status = item['status'];
+                                              return PieChartSectionData(
+                                                value: valor,
+                                                title: '${valor.toInt()}',
+                                                titleStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                                                radius: 50,
+                                                color: _getStatusColor(status),
+                                              );
+                                            }).toList(),
+                                          ),
                                         ),
-                                        PieChartSectionData(
-                                          value: (data!['grafico']?['fechados'] ?? 0)
-                                              .toDouble(),
-                                          title: 'Fechados',
-                                          radius: 60,
-                                          color: Colors.green,
-                                        ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
+                                    SizedBox(width: 24),
+                                    // A Legenda
+                                    Expanded(
+                                      flex: 2,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: (data!['grafico'] as List).map<Widget>((item) {
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  width: 12,
+                                                  height: 12,
+                                                  decoration: BoxDecoration(
+                                                    color: _getStatusColor(item['status']),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    _getStatusTitle(item['status']),
+                                                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  '${item['total']}',
+                                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        SizedBox(height: 20),
+                        
+                        SizedBox(height: 24),
+
+                        // CARDS INFERIORES (Manutenção e Técnicos)
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               child: Card(
-                                child: Container(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                child: Padding(
                                   padding: EdgeInsets.all(16),
-                                  height: 80,
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        'Manutenções Atrasadas',
-                                        style: TextStyle(
-                                            color: Colors.grey[700]),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
+                                          SizedBox(width: 8),
+                                          Text('Atenção', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                                        ],
                                       ),
-                                      SizedBox(height: 8),
-                                      Text('8 ativos precisam de atenção'),
+                                      SizedBox(height: 12),
+                                      Text('Manutenções Atrasadas', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                                      SizedBox(height: 4),
+                                      Text('8 ativos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                 ),
                               ),
                             ),
-                            SizedBox(width: 12),
+                            SizedBox(width: 16),
                             Expanded(
                               child: Card(
-                                child: Container(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                child: Padding(
                                   padding: EdgeInsets.all(16),
-                                  height: 80,
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        'Técnicos Disponíveis',
-                                        style: TextStyle(
-                                            color: Colors.grey[700]),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.people_outline, color: Colors.blue, size: 20),
+                                          SizedBox(width: 8),
+                                          Text('Equipe', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700])),
+                                        ],
                                       ),
-                                      SizedBox(height: 8),
-                                      Text('12 de 15 técnicos online'),
+                                      SizedBox(height: 12),
+                                      Text('Técnicos Online', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                                      SizedBox(height: 4),
+                                      Text('12 / 15', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                 ),

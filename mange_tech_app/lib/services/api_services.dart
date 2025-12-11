@@ -8,10 +8,10 @@ import '../models/categoria.dart';
 import '../models/ambiente.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.15.18:8000';
-  
+  static const String baseUrl = 'https://webappeduu.azurewebsites.net';
+
   String? _token;
-  
+
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
   ApiService._internal();
@@ -42,11 +42,11 @@ class ApiService {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
-    
+
     if (needsAuth && _token != null) {
       headers['Authorization'] = 'Bearer $_token';
     }
-    
+
     return headers;
   }
 
@@ -115,7 +115,7 @@ class ApiService {
 
   Future<Map<String, dynamic>?> getCurrentUser() async {
     await _loadToken();
-    
+
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/me/'),
@@ -138,7 +138,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> getDashboardData() async {
     await _loadToken();
-    
+
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/chamados/estatisticas/'),
@@ -147,7 +147,8 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final stats = jsonDecode(response.body);
-        
+
+        // Buscando ativos para o contador
         final ativosResponse = await http.get(
           Uri.parse('$baseUrl/ativos/'),
           headers: _getHeaders(),
@@ -162,28 +163,23 @@ class ApiService {
           }
         }
 
-        int abertos = 0;
-        int fechados = 0;
+        int totalAbertos = 0;
         for (var item in stats['por_status']) {
-          if (item['status'] == 'aberto' || item['status'] == 'aguardando_responsaveis' || item['status'] == 'em_andamento') {
-            abertos += (item['total'] as int);
-          } else {
-            fechados += (item['total'] as int);
+          if (['aberto', 'aguardando_responsaveis', 'em_andamento']
+              .contains(item['status'])) {
+            totalAbertos += (item['total'] as int);
           }
         }
 
         return {
-          'chamadosAbertos': abertos,
+          'chamadosAbertos': totalAbertos,
           'tempoMedio': '2.4h',
           'ativosAtivos': ativosAtivos,
           'satisfacao': 94,
-          'grafico': {
-            'abertos': abertos.toDouble(),
-            'fechados': fechados.toDouble(),
-          },
+          'grafico': stats['por_status'],
         };
       }
-      
+
       throw Exception('Erro ao buscar dados do dashboard');
     } catch (e) {
       print('Erro no dashboard: $e');
@@ -201,15 +197,15 @@ class ApiService {
     String? search,
   }) async {
     await _loadToken();
-    
+
     try {
       var url = '$baseUrl/chamados/';
       final params = <String, String>{};
-      
+
       if (status != null) params['status'] = status;
       if (urgencia != null) params['urgencia'] = urgencia;
       if (search != null) params['search'] = search;
-      
+
       if (params.isNotEmpty) {
         url += '?' + params.entries.map((e) => '${e.key}=${e.value}').join('&');
       }
@@ -222,12 +218,12 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final results = data['results'] ?? data;
-        
+
         if (results is List) {
           return results.map((json) => Chamado.fromJson(json)).toList();
         }
       }
-      
+
       return [];
     } catch (e) {
       print('Erro ao buscar chamados: $e');
@@ -237,7 +233,7 @@ class ApiService {
 
   Future<Chamado?> getChamadoById(int id) async {
     await _loadToken();
-    
+
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/chamados/$id/'),
@@ -262,18 +258,18 @@ class ApiService {
     List<int>? ativosIds,
   }) async {
     await _loadToken();
-    
+
     try {
       final Map<String, dynamic> body = {
         'titulo': titulo,
         'descricao': descricao,
         'urgencia': urgencia,
       };
-      
+
       if (dataSugerida != null) {
         body['data_sugerida'] = dataSugerida.toIso8601String();
       }
-      
+
       if (ativosIds != null && ativosIds.isNotEmpty) {
         body['ativos_ids'] = ativosIds;
       }
@@ -300,7 +296,7 @@ class ApiService {
     String? comentario,
   }) async {
     await _loadToken();
-    
+
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/chamados/$chamadoId/alterar_status/'),
@@ -323,7 +319,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> deleteChamado(int id) async {
     await _loadToken();
-    
+
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/chamados/$id/remover/'),
@@ -351,16 +347,16 @@ class ApiService {
     int? categoriaId,
   }) async {
     await _loadToken();
-    
+
     try {
       var url = '$baseUrl/ativos/';
       final params = <String, String>{};
-      
+
       if (status != null) params['status'] = status;
       if (search != null) params['search'] = search;
       if (ambienteId != null) params['ambiente'] = ambienteId.toString();
       if (categoriaId != null) params['categoria'] = categoriaId.toString();
-      
+
       if (params.isNotEmpty) {
         url += '?' + params.entries.map((e) => '${e.key}=${e.value}').join('&');
       }
@@ -373,12 +369,12 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final results = data['results'] ?? data;
-        
+
         if (results is List) {
           return results.map((json) => Ativo.fromJson(json)).toList();
         }
       }
-      
+
       return [];
     } catch (e) {
       print('Erro ao buscar ativos: $e');
@@ -396,15 +392,16 @@ class ApiService {
     String status = 'ativo',
   }) async {
     await _loadToken();
-    
+
     try {
       final Map<String, dynamic> body = {
         'nome': nome,
         'descricao': descricao,
         'status': status,
       };
-      
-      if (codigoPatrimonio != null) body['codigo_patrimonio'] = codigoPatrimonio;
+
+      if (codigoPatrimonio != null)
+        body['codigo_patrimonio'] = codigoPatrimonio;
       if (qrCode != null) body['qr_code'] = qrCode;
       if (categoriaId != null) body['categoria'] = categoriaId;
       if (ambienteId != null) body['ambiente'] = ambienteId;
@@ -425,13 +422,60 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> updateAtivo(int id, {
+    required String nome,
+    required String descricao,
+    String? codigoPatrimonio,
+    String? qrCode,
+    String? status,
+    int? categoriaId,
+    int? ambienteId,
+  }) async {
+    await _loadToken();
+    
+    try {
+      // Monta apenas os dados que foram enviados
+      final Map<String, dynamic> body = {
+        'nome': nome,
+        'descricao': descricao,
+      };
+      
+      if (codigoPatrimonio != null) body['codigo_patrimonio'] = codigoPatrimonio;
+      if (qrCode != null) body['qr_code'] = qrCode;
+      if (status != null) body['status'] = status;
+      if (categoriaId != null) body['categoria'] = categoriaId;
+      if (ambienteId != null) body['ambiente'] = ambienteId;
+
+      // Usa PATCH para atualizar apenas os campos enviados
+      final response = await http.patch(
+        Uri.parse('$baseUrl/ativos/$id/'),
+        headers: _getHeaders(),
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': jsonDecode(response.body)};
+      } else {
+        // Tenta ler o erro do backend
+        String errorMsg = 'Erro ao atualizar ativo';
+        try {
+            final errorData = jsonDecode(response.body);
+            errorMsg = errorData.toString();
+        } catch (_) {}
+        return {'success': false, 'error': errorMsg};
+      }
+    } catch (e) {
+      return {'success': false, 'error': 'Erro de conexão: $e'};
+    }
+  }
+
   // ============================================
   // CATEGORIAS
   // ============================================
 
   Future<List<Categoria>> getCategorias({String? search}) async {
     await _loadToken();
-    
+
     try {
       var url = '$baseUrl/categorias/';
       if (search != null && search.isNotEmpty) {
@@ -446,12 +490,12 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final results = data['results'] ?? data;
-        
+
         if (results is List) {
           return results.map((json) => Categoria.fromJson(json)).toList();
         }
       }
-      
+
       return [];
     } catch (e) {
       print('Erro ao buscar categorias: $e');
@@ -465,7 +509,7 @@ class ApiService {
 
   Future<List<Ambiente>> getAmbientes({String? search}) async {
     await _loadToken();
-    
+
     try {
       var url = '$baseUrl/ambientes/';
       if (search != null && search.isNotEmpty) {
@@ -480,12 +524,12 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final results = data['results'] ?? data;
-        
+
         if (results is List) {
           return results.map((json) => Ambiente.fromJson(json)).toList();
         }
       }
-      
+
       return [];
     } catch (e) {
       print('Erro ao buscar ambientes: $e');
@@ -499,7 +543,7 @@ class ApiService {
 
   Future<List<Usuario>> getUsuarios({String? search}) async {
     await _loadToken();
-    
+
     try {
       var url = '$baseUrl/usuarios/';
       if (search != null && search.isNotEmpty) {
@@ -514,15 +558,53 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final results = data['results'] ?? data;
-        
+
         if (results is List) {
           return results.map((json) => Usuario.fromJson(json)).toList();
         }
       }
-      
+
       return [];
     } catch (e) {
       print('Erro ao buscar usuários: $e');
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getHistoricoChamado(int id) async {
+    await _loadToken();
+    final url = '$baseUrl/chamados/$id/historico/';
+
+    print('--- DEBUG HISTÓRICO ---');
+    print('1. Tentando buscar histórico em: $url');
+    print('2. Token usado: $_token');
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: _getHeaders(),
+      );
+
+      print('3. Status Code: ${response.statusCode}');
+      print('4. Corpo da Resposta: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // Verifica se é uma lista direta ou paginada
+        final results = data is List ? data : (data['results'] ?? []);
+
+        print('5. Itens encontrados: ${results.length}');
+
+        if (results is List) {
+          return List<Map<String, dynamic>>.from(results);
+        }
+      } else {
+        print('ERRO: O servidor recusou com status ${response.statusCode}');
+      }
+      return [];
+    } catch (e) {
+      print('ERRO CRÍTICO no histórico: $e');
       return [];
     }
   }
