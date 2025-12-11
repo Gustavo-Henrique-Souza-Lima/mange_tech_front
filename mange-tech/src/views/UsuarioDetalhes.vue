@@ -159,10 +159,8 @@ const carregarUsuario = async () => {
   loading.value = true
   error.value = null
   
-  // 1. Pega o ID da rota
   const id = route.params.id
 
-  // 2. Proteção contra ID inválido
   if (!id || id === 'undefined') {
     error.value = 'ID do usuário inválido ou não fornecido.'
     loading.value = false
@@ -180,7 +178,6 @@ const carregarUsuario = async () => {
   }
 }
 
-// Helpers
 const getNomeCompleto = (perfil) => {
   if (!perfil?.user) return 'Usuário Desconhecido'
   const { first_name, last_name, username } = perfil.user
