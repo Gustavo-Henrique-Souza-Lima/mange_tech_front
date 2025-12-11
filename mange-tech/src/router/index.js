@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import authService from '@/api/authService'
-import usuariosService from '@/api/usuariosService' 
+import usuariosService from '@/api/usuariosService'
 
 import Login from '../views/Login.vue'
 import Cadastro from '../views/Cadastro.vue'
@@ -88,7 +88,7 @@ const router = createRouter({
       path: '/perfil',
       name: 'meu-perfil',
       component: MeuPerfil,
-      meta: { requiresAuth: true } 
+      meta: { requiresAuth: true }
     },
   ]
 })
@@ -101,37 +101,37 @@ router.beforeEach(async (to, from, next) => {
   if (requiresAuth && !isAuthenticated) {
     return next('/login')
   } else if ((to.path === '/login' || to.path === '/cadastro') && isAuthenticated) {
-    return next('/') 
+    return next('/')
   }
 
   if (isAuthenticated && to.meta.roles) {
     try {
       const res = await usuariosService.getMe()
-      
+      console.log("🔍 Resposta COMPLETA da API /usuarios/me/:", res.data)
       const user = res.data.user || res.data
-      
+
       if (!user) {
         throw new Error('Dados do usuário não encontrados na resposta.')
       }
 
-      const isSuperUser = user.is_superuser
-      const userGroups = user.groups || [] 
-      
+      const isSuperUser = !!user.is_superuser || false
+      const userGroups = user.groups || []
+
       let temPermissao = false;
-      
+
       if (isSuperUser) {
-          temPermissao = true;
-      } 
-      else {
-          const requiredRoles = to.meta.roles;
-          temPermissao = requiredRoles.some(role => userGroups.includes(role));
+        temPermissao = true;
       }
-      
+      else {
+        const requiredRoles = to.meta.roles;
+        temPermissao = requiredRoles.some(role => userGroups.includes(role));
+      }
+
       if (!temPermissao) {
         console.warn(`⛔ Acesso negado a ${to.path}. User: ${user.username}, Roles: [${userGroups}], Super: ${isSuperUser}`)
-        return next('/chamados') 
+        return next('/chamados')
       }
-      
+
     } catch (error) {
       console.error('Erro de verificação de permissão no router:', error)
       authService.logout()
