@@ -93,56 +93,47 @@ const router = createRouter({
   ]
 })
 
-// --- GUARD DE PROTEÇÃO (RBAC) ---
+// --- GUARD DE PROTEÇÃO ---
 router.beforeEach(async (to, from, next) => {
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const isAuthenticated = authService.isAuthenticated()
 
-  if (requiresAuth && !isAuthenticated) {
-    return next('/login')
-  } else if ((to.path === '/login' || to.path === '/cadastro') && isAuthenticated) {
-    return next('/')
-  }
+    if (isAuthenticated && to.meta.roles) {
+        try {
+            const res = await usuariosService.getMe()
+            
+            const data = res && res.data ? res.data : {};
+            
+            console.log("🔍 Resposta COMPLETA da API /usuarios/me/:", data)
+            
+            const userPayload = data.user || data 
 
-  if (isAuthenticated && to.meta.roles) {
-    try {
-      const res = await usuariosService.getMe()
-      console.log("🔍 Resposta COMPLETA da API /usuarios/me/:", res.data)
+            if (!userPayload || !userPayload.id) {
+                throw new Error('Payload de usuário vazio ou inválido na resposta da API.')
+            }
 
-      const apiResponse = res.data || {}
+            const isSuperUser = !!userPayload.is_superuser
+            const userGroups = userPayload.groups || []
 
-      const userPayload = apiResponse.user || apiResponse
+            let temPermissao = false;
 
-      if (!userPayload || !userPayload.id) {
-        throw new Error('Dados do usuário ausentes ou inválidos na resposta da API.')
-      }
+            if (isSuperUser) {
+                temPermissao = true;
+            }
+            else {
+                const requiredRoles = to.meta.roles;
+                temPermissao = requiredRoles.some(role => userGroups.includes(role));
+            }
 
-      const isSuperUser = !!userPayload.is_superuser
-      const userGroups = userPayload.groups || []
+            if (!temPermissao) {
+                console.warn(`⛔ Acesso negado a ${to.path}. User: ${userPayload.username}, Roles: [${userGroups}], Super: ${isSuperUser}`)
+                return next('/chamados')
+            }
 
-      let temPermissao = false;
-
-      if (isSuperUser) {
-        temPermissao = true;
-      }
-      else {
-        const requiredRoles = to.meta.roles;
-        temPermissao = requiredRoles.some(role => userGroups.includes(role));
-      }
-
-      if (!temPermissao) {
-        console.warn(`⛔ Acesso negado a ${to.path}. User: ${userPayload.username}, Roles: [${userGroups}], Super: ${isSuperUser}`)
-        return next('/chamados')
-      }
-
-    } catch (error) {
-      console.error('Erro de verificação de permissão no router:', error)
-      authService.logout()
-      return next('/login')
+        } catch (error) {
+            console.error('Erro de verificação de permissão no router:', error)
+            authService.logout()
+            return next('/login')
+        }
     }
-  }
 
-  next()
+    next()
 })
-
-export default router
