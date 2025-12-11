@@ -7,9 +7,18 @@ from .models import (
 
 class UserSerializer(serializers.ModelSerializer):
     nome_completo = serializers.SerializerMethodField()
+    groups = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'nome_completo']
+        fields = [
+            'id', 'username', 'first_name', 'last_name', 'email', 
+            'nome_completo', 'is_active', 'is_superuser', 'last_login', 'groups'
+        ]
     
     def get_nome_completo(self, obj):
         return obj.get_full_name() or obj.username
@@ -64,7 +73,6 @@ class AtivoReadSerializer(serializers.ModelSerializer):
 class AtivoWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ativo
-        # GARANTINDO QUE qr_code ESTÁ AQUI
         fields = ['nome', 'descricao', 'codigo_patrimonio', 'qr_code', 'categoria', 'ambiente', 'status']
 
 class ChamadoResponsavelSerializer(serializers.ModelSerializer):
@@ -137,7 +145,6 @@ class ChamadoCreateSerializer(serializers.ModelSerializer):
         chamado = Chamado.objects.create(**validated_data)
         if ativos_ids:
             chamado.ativos.set(ativos_ids)
-            # AQUI ESTÁ A MÁGICA: Mudar status dos ativos para manutenção
             chamado.ativos.update(status='manutencao')
             
         ChamadoStatusHistory.objects.create(chamado=chamado, user=validated_data['solicitante'], status='aberto', comentario='Chamado criado')

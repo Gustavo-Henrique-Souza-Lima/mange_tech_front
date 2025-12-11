@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import authService from '@/api/authService'
+import usuariosService from '@/api/usuariosService' 
 
 import Login from '../views/Login.vue'
 import Cadastro from '../views/Cadastro.vue'
@@ -12,6 +13,7 @@ import ChamadoDetalhes from '../views/ChamadoDetalhes.vue'
 import Ambientes from '../views/Ambientes.vue'
 import AtivoDetalhes from '../views/AtivosDetalhes.vue'
 import UsuarioDetalhes from '@/views/UsuarioDetalhes.vue'
+import MeuPerfil from '@/views/MeuPerfil.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,7 +34,7 @@ const router = createRouter({
       path: '/',
       name: 'dashboard',
       component: Dashboard,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true, roles: ['ADMIN', 'TECNICO', 'SUPERVISOR'] }
     },
     {
       path: '/ativos',
@@ -50,13 +52,13 @@ const router = createRouter({
       path: '/usuarios',
       name: 'usuarios',
       component: Usuarios,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true, roles: ['ADMIN', 'SUPERVISOR'] }
     },
     {
       path: '/usuarios/:id',
       name: 'usuario-detalhes',
       component: UsuarioDetalhes,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true, roles: ['ADMIN', 'SUPERVISOR'] }
     },
     {
       path: '/configuracoes',
@@ -82,20 +84,50 @@ const router = createRouter({
       component: AtivoDetalhes,
       meta: { requiresAuth: true }
     },
+    {
+      path: '/perfil',
+      name: 'meu-perfil',
+      component: MeuPerfil,
+      meta: { requiresAuth: true } // Todos logados podem ver
+    },
   ]
 })
 
-router.beforeEach((to, from, next) => {
+// --- GUARD DE PROTEÇÃO ---
+router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isAuthenticated = authService.isAuthenticated()
 
   if (requiresAuth && !isAuthenticated) {
-    next('/login')
-  } else if ((to.path === '/login' || to.path === '/cadastro') && isAuthenticated) {
-    next('/')
-  } else {
-    next()
+    return next('/login')
   }
+  else if ((to.path === '/login' || to.path === '/cadastro') && isAuthenticated) {
+    return next('/')
+  }
+
+  if (isAuthenticated && to.meta.roles) {
+    try {
+      const res = await usuariosService.getMe()
+      const user = res.data.user
+
+      const isSuperUser = user.is_superuser
+
+      const userGroups = user.groups || []
+
+      const temPermissao = isSuperUser || to.meta.roles.some(role => userGroups.includes(role))
+
+      if (!temPermissao) {
+        console.warn(`⛔ Acesso negado a ${to.path}. Redirecionando para Chamados.`)
+        return next('/chamados') // Joga usuário comum para tela segura
+      }
+    } catch (error) {
+      console.error('Erro ao verificar permissão:', error)
+
+      return next('/chamados')
+    }
+  }
+
+  next()
 })
 
 export default router

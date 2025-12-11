@@ -1,145 +1,98 @@
-<!-- src/views/Cadastro.vue - MESMO DESIGN DO LOGIN -->
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50">
-    <div class="bg-white p-8 rounded-lg border border-gray-200 shadow-sm w-full max-w-2xl">
-      <!-- Logo/Título -->
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">MANGE_TECH</h1>
-        <p class="text-sm text-gray-500">Sistema de Gestão de Chamados</p>
+  <div class="min-h-screen flex bg-white">
+    
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-900 to-gray-800 text-white flex-col justify-center items-center p-12 relative overflow-hidden">
+      <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+      
+      <div class="relative z-10 text-center max-w-lg">
+        <h2 class="text-3xl font-bold mb-6">Junte-se à equipe</h2>
+        <div class="space-y-4 text-left bg-white/5 p-6 rounded-xl backdrop-blur-sm border border-white/10">
+           <div class="flex items-center gap-3">
+              <div class="bg-green-500 rounded-full p-1"><svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
+              <span>Acompanhe chamados em tempo real</span>
+           </div>
+           <div class="flex items-center gap-3">
+              <div class="bg-green-500 rounded-full p-1"><svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
+              <span>Gestão completa de ativos e patrimônio</span>
+           </div>
+           <div class="flex items-center gap-3">
+              <div class="bg-green-500 rounded-full p-1"><svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
+              <span>Relatórios e métricas de desempenho</span>
+           </div>
+        </div>
       </div>
+    </div>
 
-      <!-- Título da Seção -->
-      <div class="text-center mb-6">
-        <h2 class="text-xl font-semibold text-gray-800">Criar Nova Conta</h2>
-        <p class="text-sm text-gray-500 mt-1">Preencha os dados para se cadastrar</p>
-      </div>
-
-      <!-- Formulário de Cadastro -->
-      <form @submit.prevent="handleCadastro" class="space-y-4">
-        <!-- Nome e Sobrenome -->
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Nome
-            </label>
-            <input
-              v-model="cadastroForm.first_name"
-              type="text"
-              required
-              autocomplete="given-name"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Nome"
-              @input="clearMessages"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Sobrenome
-            </label>
-            <input
-              v-model="cadastroForm.last_name"
-              type="text"
-              required
-              autocomplete="family-name"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Sobrenome"
-              @input="clearMessages"
-            />
-          </div>
-        </div>
-
-        <!-- Username -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Usuário
-          </label>
-          <input
-            v-model="cadastroForm.username"
-            type="text"
-            required
-            autocomplete="username"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Escolha um nome de usuário"
-            @input="clearMessages"
-          />
-        </div>
-
-        <!-- E-mail -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            E-mail
-          </label>
-          <input
-            v-model="cadastroForm.email"
-            type="email"
-            required
-            autocomplete="email"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="seu@email.com"
-            @input="clearMessages"
-          />
-        </div>
-
-        <!-- Senha e Confirmar -->
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Senha
-            </label>
-            <input
-              v-model="cadastroForm.password"
-              type="password"
-              required
-              minlength="6"
-              autocomplete="new-password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Mínimo 6 caracteres"
-              @input="clearMessages"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Confirmar Senha
-            </label>
-            <input
-              v-model="cadastroForm.password_confirm"
-              type="password"
-              required
-              autocomplete="new-password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Digite a senha novamente"
-              @input="clearMessages"
-            />
-          </div>
-        </div>
-
-        <!-- Mensagens de Erro/Sucesso -->
-        <div v-if="error" class="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-          {{ error }}
-        </div>
-
-        <div v-if="success" class="p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
-          {{ success }}
-        </div>
-
-        <!-- Botão -->
-        <button
-          type="submit"
-          :disabled="loading"
-          class="w-full bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-        >
-          {{ loading ? 'Cadastrando...' : 'Cadastrar' }}
-        </button>
-      </form>
-
-      <!-- Link para Login -->
-      <div class="mt-6 text-center">
-        <p class="text-sm text-gray-600">
-          Já tem uma conta?
-          <router-link to="/login" class="text-blue-600 hover:text-blue-700 font-medium ml-1">
-            Faça login
+    <div class="flex-1 flex flex-col justify-center items-center p-6 lg:p-12 bg-white overflow-y-auto">
+      <div class="w-full max-w-lg">
+        
+        <div class="mb-8">
+          <router-link to="/login" class="text-sm text-gray-500 hover:text-gray-900 flex items-center gap-1 mb-4 transition-colors">
+            &larr; Voltar para login
           </router-link>
+          <h2 class="text-3xl font-bold text-gray-900">Criar Nova Conta</h2>
+          <p class="text-gray-500 mt-2">Preencha os dados abaixo para começar.</p>
+        </div>
+
+        <form @submit.prevent="handleCadastro" class="space-y-5">
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome</label>
+              <input v-model="cadastroForm.first_name" type="text" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-sm" placeholder="Seu nome" @input="clearMessages" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Sobrenome</label>
+              <input v-model="cadastroForm.last_name" type="text" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-sm" placeholder="Seu sobrenome" @input="clearMessages" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Usuário</label>
+            <div class="relative">
+               <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 text-sm">@</span>
+               <input v-model="cadastroForm.username" type="text" required class="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-sm" placeholder="usuario_sistema" @input="clearMessages" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">E-mail</label>
+            <input v-model="cadastroForm.email" type="email" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-sm" placeholder="voce@empresa.com" @input="clearMessages" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Senha</label>
+              <input v-model="cadastroForm.password" type="password" required minlength="6" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-sm" placeholder="******" @input="clearMessages" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Confirmar</label>
+              <input v-model="cadastroForm.password_confirm" type="password" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-sm" placeholder="******" @input="clearMessages" />
+            </div>
+          </div>
+
+          <div v-if="error" class="p-4 bg-red-50 text-red-600 text-sm rounded-lg flex items-center gap-2 border border-red-100">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            {{ error }}
+          </div>
+
+          <div v-if="success" class="p-4 bg-green-50 text-green-700 text-sm rounded-lg flex items-center gap-2 border border-green-100">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            {{ success }}
+          </div>
+
+          <button
+            type="submit"
+            :disabled="loading"
+            class="w-full bg-gray-900 text-white py-3.5 rounded-lg font-bold hover:bg-black disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-md mt-4 flex justify-center items-center gap-2"
+          >
+            <span v-if="loading" class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            {{ loading ? 'Criando Conta...' : 'Cadastrar-se' }}
+          </button>
+        </form>
+
+        <p class="text-xs text-gray-400 mt-6 text-center">
+          Ao se cadastrar, você concorda com nossos Termos de Serviço e Política de Privacidade.
         </p>
       </div>
     </div>
@@ -152,36 +105,28 @@ import { useRouter } from 'vue-router'
 import authService from '@/api/authService'
 
 const router = useRouter()
-
 const loading = ref(false)
 const error = ref('')
 const success = ref('')
 
 const cadastroForm = reactive({
-  username: '',
-  email: '',
-  password: '',
-  password_confirm: '',
-  first_name: '',
-  last_name: ''
+  username: '', email: '', password: '', password_confirm: '',
+  first_name: '', last_name: ''
 })
 
 const handleCadastro = async () => {
   if (loading.value) return
-  
   loading.value = true
   error.value = ''
   success.value = ''
   
-  // Validações
   if (cadastroForm.password !== cadastroForm.password_confirm) {
-    error.value = 'As senhas não coincidem'
+    error.value = 'As senhas não coincidem.'
     loading.value = false
     return
   }
-
   if (cadastroForm.password.length < 6) {
-    error.value = 'A senha deve ter no mínimo 6 caracteres'
+    error.value = 'A senha deve ter no mínimo 6 caracteres.'
     loading.value = false
     return
   }
@@ -195,23 +140,21 @@ const handleCadastro = async () => {
       last_name: cadastroForm.last_name
     })
     
-    success.value = 'Cadastro realizado com sucesso! Redirecionando...'
+    success.value = 'Conta criada com sucesso! Redirecionando...'
     
-    // Fazer login automático
     setTimeout(async () => {
-      await authService.login(cadastroForm.username, cadastroForm.password)
-      router.push('/')
+      try {
+        await authService.login(cadastroForm.username, cadastroForm.password)
+        router.push('/')
+      } catch (e) {
+        router.push('/login')
+      }
     }, 1500)
     
   } catch (err) {
-    if (err.response?.data?.username) {
-      error.value = 'Este nome de usuário já está em uso'
-    } else if (err.response?.data?.email) {
-      error.value = 'Este e-mail já está cadastrado'
-    } else {
-      error.value = 'Erro ao realizar cadastro. Tente novamente.'
-    }
-    console.error('Erro no cadastro:', err)
+    if (err.response?.data?.username) error.value = 'Este nome de usuário já está em uso.'
+    else if (err.response?.data?.email) error.value = 'Este e-mail já está cadastrado.'
+    else error.value = 'Erro ao criar conta. Verifique os dados.'
   } finally {
     loading.value = false
   }

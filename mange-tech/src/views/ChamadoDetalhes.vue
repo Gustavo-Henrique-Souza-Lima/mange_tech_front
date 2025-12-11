@@ -81,6 +81,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <div class="lg:col-span-1 space-y-6">
+           
            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
              <h3 class="font-bold text-gray-800 mb-4 border-b pb-2">Gerenciar Chamado</h3>
              
@@ -115,40 +116,15 @@
            </div>
 
            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-             <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 class="font-bold text-gray-800">Anexos Gerais</h3>
-                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full">{{ chamado.anexos?.length || 0 }}</span>
-             </div>
-             
-             <div v-if="chamado.anexos && chamado.anexos.length" class="space-y-3 mb-5 max-h-80 overflow-y-auto pr-1">
-               <div v-for="anexo in chamado.anexos" :key="anexo.id" class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition">
-                 <div class="flex items-center gap-3 overflow-hidden">
-                   <div v-if="isImage(anexo.nome_arquivo)" 
-                        @click="abrirModalImagem(anexo.url, anexo.nome_arquivo)"
-                        class="w-10 h-10 rounded bg-gray-100 border overflow-hidden cursor-pointer flex-shrink-0">
-                      <img :src="anexo.url" class="w-full h-full object-cover" />
-                   </div>
-                   <div v-else class="w-10 h-10 rounded bg-blue-50 flex items-center justify-center text-blue-500 shrink-0 font-bold text-xs">
-                     DOC
-                   </div>
-
-                   <div class="flex flex-col min-w-0">
-                     <a :href="anexo.url" target="_blank" class="text-sm font-medium text-gray-700 hover:text-blue-600 truncate block">
-                       {{ anexo.nome_arquivo }}
-                     </a>
-                     <span class="text-[10px] text-gray-400">{{ anexo.tamanho_formatado }}</span>
-                   </div>
-                 </div>
-                 <a :href="anexo.url" target="_blank" class="text-gray-400 hover:text-blue-600 p-1">⬇️</a>
-               </div>
-             </div>
-             
-             <div v-else class="text-center py-4 bg-gray-50 rounded mb-4 text-xs text-gray-400">
-               Nenhum arquivo anexado.
-             </div>
+             <h3 class="font-bold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">
+                <span>📂</span> Upload Rápido
+             </h3>
+             <p class="text-xs text-gray-500 mb-3">
+                Adicione um arquivo ao chamado sem alterar o status. Ele aparecerá na linha do tempo.
+             </p>
              
              <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-               <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Novo Upload</label>
+               <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Selecionar Arquivo</label>
                <input type="file" ref="fileInput" @change="handleFileSelect" class="block w-full text-xs text-gray-500 mb-2"/>
                <button 
                   v-if="arquivoSelecionado"

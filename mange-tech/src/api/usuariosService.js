@@ -1,32 +1,31 @@
-// src/api/usuariosService.js - VERSÃO FINAL CORRIGIDA
 import api from './axios'
 
 export default {
-  // Listar todos os usuários (usando endpoint /usuarios/ do UserProfileViewSet)
+  // Listar todos os usuários
   async getAll(params = {}) {
     try {
       const response = await api.get('/usuarios/', { params })
       return response
     } catch (error) {
       console.error('Erro ao buscar usuários:', error)
-      
-      // Fallback: se não existir, retorna apenas usuário atual
-      if (error.response?.status === 404) {
-        console.warn('⚠️ Endpoint /usuarios/ não encontrado, retornando apenas usuário atual')
-        const meResponse = await api.get('/me/')
-        return {
-          data: {
-            results: [meResponse.data],
-            count: 1
-          }
+      if (error.response?.status === 404 || error.response?.status === 403) {
+        try {
+            const meResponse = await api.get('/usuarios/me/')
+            return {
+                data: {
+                    results: [meResponse.data],
+                    count: 1
+                }
+            }
+        } catch (e) {
+            throw error
         }
       }
-      
       throw error
     }
   },
 
-  // Buscar usuário por ID (endpoint do UserProfile)
+  // Buscar usuário por ID
   async getById(id) {
     try {
       const response = await api.get(`/usuarios/${id}/`)
@@ -37,10 +36,10 @@ export default {
     }
   },
 
-  // Buscar usuário logado
+  // Buscar usuário logado (para checar permissões no menu)
   async getMe() {
     try {
-      const response = await api.get('/me/')
+      const response = await api.get('/usuarios/me/')
       return response
     } catch (error) {
       console.error('Erro ao buscar usuário atual:', error)
@@ -48,7 +47,19 @@ export default {
     }
   },
 
-  // ✅ ATUALIZAR PERFIL (PATCH) - UserProfile (telefone, endereco, nif)
+  // CRIAR USUÁRIO
+  async create(dados) {
+    try {
+      // POST para /usuarios/ aciona o método 'create' personalizado no ViewSet
+      const response = await api.post('/usuarios/', dados)
+      return response
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error)
+      throw error
+    }
+  },
+
+  // ATUALIZAR PERFIL 
   async updateProfile(userId, dados) {
     try {
       const payload = {
@@ -56,8 +67,6 @@ export default {
         endereco: dados.endereco || '',
         nif: dados.nif || ''
       }
-
-      console.log('📤 Atualizando perfil:', payload)
       const response = await api.patch(`/usuarios/${userId}/`, payload)
       return response
     } catch (error) {
@@ -66,29 +75,21 @@ export default {
     }
   },
 
-  // ✅ ATUALIZAR USER (first_name, last_name, email) - NOVO ENDPOINT
   async updateUser(userId, dados) {
     try {
       const payload = {
         first_name: dados.first_name,
         last_name: dados.last_name,
-        email: dados.email
+        email: dados.email,
+        is_active: dados.is_active,
+        cargo: dados.cargo, 
       }
 
       console.log('📤 Atualizando dados do usuário:', payload)
-      
-      // Chama o novo endpoint customizado
       const response = await api.patch(`/usuarios/${userId}/update_user/`, payload)
       return response
     } catch (error) {
-      console.error('Erro ao atualizar usuário:', error)
-      
-      // Se o endpoint não existir (404), tenta atualizar só o profile
-      if (error.response?.status === 404) {
-        console.warn('⚠️ Endpoint /update_user/ não encontrado. Atualize o backend.')
-        throw new Error('Endpoint de atualização de usuário não implementado no backend')
-      }
-      
+      console.error('Erro ao atualizar usuário (core):', error)
       throw error
     }
   },
