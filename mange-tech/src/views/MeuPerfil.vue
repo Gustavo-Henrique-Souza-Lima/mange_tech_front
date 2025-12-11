@@ -36,10 +36,9 @@
               <p class="text-sm text-gray-500 mb-4">@{{ usuario.user?.username }}</p>
 
               <div class="flex justify-center mb-6">
-                <span v-if="usuario.user?.is_superuser || usuario.user?.groups?.includes('ADMIN')" class="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full uppercase tracking-wide">Administrador</span>
-                <span v-else-if="usuario.user?.groups?.includes('SUPERVISOR')" class="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full uppercase tracking-wide">Supervisor</span>
-                <span v-else-if="usuario.user?.groups?.includes('TECNICO')" class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">Técnico</span>
-                <span v-else class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full uppercase tracking-wide">Usuário</span>
+                <span :class="getCargoClass(usuario.user)" class="px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wide">
+                    {{ getCargoLabel(usuario.user) }}
+                </span>
               </div>
 
               <button 
@@ -179,7 +178,6 @@ const form = reactive({
 const carregarDados = async () => {
   loading.value = true
   try {
-    // Busca os dados do usuário LOGADO
     const response = await usuariosService.getMe()
     usuario.value = response.data
   } catch (err) {
@@ -243,6 +241,27 @@ const getNomeCompleto = (u) => u?.user?.first_name ? `${u.user.first_name} ${u.u
 const getIniciais = (u) => (u?.user?.username || 'U').substring(0, 2).toUpperCase()
 const formatarData = (d) => d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'
 const formatarDataHora = (d) => d ? new Date(d).toLocaleString('pt-BR') : '-'
+
+// --- FUNÇÕES DE EXIBIÇÃO DE CARGO PARA O TEMPLATE ---
+const getCargoLabel = (user) => {
+    if (!user) return 'N/A';
+    const groups = user.groups || [];
+    
+    if (user.is_superuser || groups.includes('ADMIN')) return 'Administrador';
+    if (groups.includes('SUPERVISOR')) return 'Supervisor';
+    if (groups.includes('TECNICO')) return 'Técnico';
+    return 'Usuário Padrão';
+}
+
+const getCargoClass = (user) => {
+    if (!user) return 'bg-gray-100 text-gray-600';
+    const groups = user.groups || [];
+    
+    if (user.is_superuser || groups.includes('ADMIN')) return 'bg-purple-100 text-purple-700 border border-purple-200';
+    if (groups.includes('SUPERVISOR')) return 'bg-orange-100 text-orange-700 border border-orange-200';
+    if (groups.includes('TECNICO')) return 'bg-blue-100 text-blue-700 border border-blue-200';
+    return 'bg-gray-100 text-gray-600 border border-gray-200';
+}
 
 onMounted(() => {
   carregarDados()

@@ -119,7 +119,8 @@ router.beforeEach(async (to, from, next) => {
       } 
       
       else {
-          temPermissao = to.meta.roles.some(role => userGroups.includes(role));
+          const requiredRoles = to.meta.roles;
+          temPermissao = requiredRoles.some(role => userGroups.includes(role));
       }
       
       if (!temPermissao) {
@@ -128,7 +129,9 @@ router.beforeEach(async (to, from, next) => {
       }
       
     } catch (error) {
-      console.error('Erro de verificação de permissão:', error)
+      console.error('Erro de verificação de permissão no router:', error)
+      
+      
       authService.logout()
       return next('/login')
     }
