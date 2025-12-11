@@ -46,7 +46,7 @@ const router = createRouter({
             path: '/',
             name: 'dashboard',
             component: Dashboard,
-            meta: { requiresAuth: true, roles: ['ADMIN', 'TECNICO', 'SUPERVISOR'] }
+            meta: { requiresAuth: true }
         },
         {
             path: '/ativos',
@@ -64,13 +64,13 @@ const router = createRouter({
             path: '/usuarios',
             name: 'usuarios',
             component: Usuarios,
-            meta: { requiresAuth: true, roles: ['ADMIN', 'SUPERVISOR'] }
+            meta: { requiresAuth: true }
         },
         {
             path: '/usuarios/:id',
             name: 'usuario-detalhes',
             component: UsuarioDetalhes,
-            meta: { requiresAuth: true, roles: ['ADMIN', 'SUPERVISOR'] }
+            meta: { requiresAuth: true }
         },
         {
             path: '/configuracoes',
