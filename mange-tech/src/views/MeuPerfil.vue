@@ -6,16 +6,16 @@
       <p class="text-gray-500 mt-4 font-medium">Carregando seus dados...</p>
     </div>
 
-    <div v-else-if="usuario" class="max-w-4xl mx-auto animate-fade-in-up">
+    <div v-else-if="usuario && !loading" class="max-w-4xl mx-auto animate-fade-in-up">
       
       <div class="mb-8">
         <h1 class="text-2xl font-bold text-gray-800">Minha Conta</h1>
         <p class="text-sm text-gray-500">Gerencie suas informações pessoais e de acesso.</p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <div class="md:col-span-1">
+        <div class="lg:col-span-1">
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden text-center h-full">
             <div class="h-32 bg-gradient-to-br from-indigo-600 to-purple-700"></div>
             <div class="px-6 pb-8 relative">
@@ -51,7 +51,7 @@
           </div>
         </div>
 
-        <div class="md:col-span-2 space-y-6">
+        <div class="lg:col-span-2 space-y-6">
           
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
             <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2 pb-2 border-b border-gray-100">
