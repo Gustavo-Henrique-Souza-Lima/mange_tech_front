@@ -38,86 +38,94 @@
       <button @click="buscarUsuarios" class="text-sm font-medium hover:underline">Tentar novamente</button>
     </div>
 
-    <div v-else class="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Usuário</th>
-            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Contato</th>
-            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">NIF/CPF</th>
-            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cadastro</th>
-            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Ações</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="perfil in usuariosFiltrados" :key="perfil.user?.id || perfil.id" class="hover:bg-gray-50 transition-colors group">
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 h-10 w-10">
-                  <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border border-indigo-200 text-sm">
-                    {{ getIniciais(perfil) }}
+    <div v-else>
+      
+      <div class="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Usuário</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Contato</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">NIF/CPF</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cadastro</th>
+              <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="perfil in usuariosFiltrados" :key="perfil.user?.id || perfil.id" class="hover:bg-gray-50 transition-colors group">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border border-indigo-200 text-sm">
+                      {{ getIniciais(perfil) }}
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">{{ getNomeCompleto(perfil) }}</div>
+                    <div class="text-xs text-gray-500">@{{ perfil.user?.username || 'N/A' }}</div>
                   </div>
                 </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900">{{ getNomeCompleto(perfil) }}</div>
-                  <div class="text-xs text-gray-500">@{{ perfil.user?.username || 'N/A' }}</div>
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">{{ perfil.user?.email || 'Sem email' }}</div>
-              <div class="text-xs text-gray-500">{{ perfil.telefone || 'Sem telefone' }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ perfil.nif || '-' }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatarData(perfil.created_at) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <router-link :to="`/usuarios/${perfil.id}`" class="text-gray-400 hover:text-indigo-600 mr-3" title="Ver Detalhes">
-                <Eye :size="18" />
-              </router-link>
-              <button @click="abrirModalEditar(perfil)" class="text-blue-400 hover:text-blue-600 mr-3" title="Editar">
-                <Edit2 :size="18" />
-              </button>
-              <button @click="confirmarRemocao(perfil)" class="text-red-400 hover:text-red-600" title="Remover">
-                <Trash2 :size="18" />
-              </button>
-            </td>
-          </tr>
-          <tr v-if="usuariosFiltrados.length === 0">
-            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-              Nenhum usuário encontrado com esse termo.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">{{ perfil.user?.email || 'Sem email' }}</div>
+                <div class="text-xs text-gray-500">{{ perfil.telefone || 'Sem telefone' }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ perfil.nif || '-' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatarData(perfil.created_at) }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <router-link :to="`/usuarios/${perfil.id}`" class="text-gray-400 hover:text-indigo-600 mr-3" title="Ver Detalhes">
+                  <Eye :size="18" />
+                </router-link>
+                <button @click="abrirModalEditar(perfil)" class="text-blue-400 hover:text-blue-600 mr-3" title="Editar">
+                  <Edit2 :size="18" />
+                </button>
+                <button @click="confirmarRemocao(perfil)" class="text-red-400 hover:text-red-600" title="Remover">
+                  <Trash2 :size="18" />
+                </button>
+              </td>
+            </tr>
+            <tr v-if="usuariosFiltrados.length === 0">
+              <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                Nenhum usuário encontrado com esse termo.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-    <div class="lg:hidden space-y-4" v-else>
-      <div v-for="perfil in usuariosFiltrados" :key="perfil.user?.id || perfil.id" class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border border-indigo-200">
-              {{ getIniciais(perfil) }}
+      <div class="lg:hidden space-y-4">
+        <div v-for="perfil in usuariosFiltrados" :key="perfil.user?.id || perfil.id" class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border border-indigo-200">
+                {{ getIniciais(perfil) }}
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-gray-900">{{ getNomeCompleto(perfil) }}</h3>
+                <p class="text-xs text-gray-500">@{{ perfil.user?.username }}</p>
+              </div>
             </div>
-            <div>
-              <h3 class="text-sm font-bold text-gray-900">{{ getNomeCompleto(perfil) }}</h3>
-              <p class="text-xs text-gray-500">@{{ perfil.user?.username }}</p>
-            </div>
+            <router-link :to="`/usuarios/${perfil.id}`" class="text-gray-400 hover:text-indigo-600">
+              <ChevronRight :size="20" />
+            </router-link>
           </div>
-          <router-link :to="`/usuarios/${perfil.id}`" class="text-gray-400 hover:text-indigo-600">
-            <ChevronRight :size="20" />
-          </router-link>
+          
+          <div class="space-y-2 text-sm text-gray-600 mb-4 border-t border-gray-100 pt-3">
+            <div class="flex justify-between"><span class="text-gray-400">Email:</span> <span class="font-medium text-gray-800">{{ perfil.user?.email || '-' }}</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Telefone:</span> <span class="font-medium text-gray-800">{{ perfil.telefone || '-' }}</span></div>
+          </div>
+
+          <div class="flex gap-2">
+            <button @click="abrirModalEditar(perfil)" class="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-blue-100 transition">Editar</button>
+            <button @click="confirmarRemocao(perfil)" class="flex-1 py-2 bg-red-50 text-red-600 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-red-100 transition">Remover</button>
+          </div>
         </div>
         
-        <div class="space-y-2 text-sm text-gray-600 mb-4 border-t border-gray-100 pt-3">
-          <div class="flex justify-between"><span class="text-gray-400">Email:</span> <span class="font-medium text-gray-800">{{ perfil.user?.email || '-' }}</span></div>
-          <div class="flex justify-between"><span class="text-gray-400">Telefone:</span> <span class="font-medium text-gray-800">{{ perfil.telefone || '-' }}</span></div>
-        </div>
-
-        <div class="flex gap-2">
-          <button @click="abrirModalEditar(perfil)" class="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-blue-100 transition">Editar</button>
-          <button @click="confirmarRemocao(perfil)" class="flex-1 py-2 bg-red-50 text-red-600 rounded-lg text-xs font-bold uppercase tracking-wide hover:bg-red-100 transition">Remover</button>
+        <div v-if="usuariosFiltrados.length === 0" class="text-center py-12 bg-white rounded-lg border border-gray-200">
+          <p class="text-gray-500">Nenhum usuário encontrado</p>
         </div>
       </div>
+
     </div>
 
     <div v-if="mostrarModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm" @click.self="fecharModal">
