@@ -6,6 +6,7 @@
       </div>
 
       <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+        
         <router-link v-if="temPermissao(['ADMIN', 'TECNICO', 'SUPERVISOR'])" to="/"
           class="flex items-center gap-3 px-4 py-3 text-gray-600 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
           active-class="bg-indigo-50 text-indigo-600 font-medium">
@@ -43,7 +44,7 @@
 
         <router-link to="/perfil"
           class="flex items-center gap-3 px-4 py-3 text-gray-600 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors relative"
-          :class="{ 'bg-indigo-50 text-indigo-600 font-medium': isActive('/perfil') }"
+          active-class="bg-indigo-50 text-indigo-600 font-medium"
         >
           <User :size="20" />
           <span class="text-sm font-medium">Meu Perfil</span>
@@ -81,7 +82,7 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { LayoutDashboard, Wrench, Package, Users, Settings, LogOut, MapPin, User } from 'lucide-vue-next' // Adicionei User aqui
+import { LayoutDashboard, Wrench, Package, Users, Settings, LogOut, MapPin, User } from 'lucide-vue-next'
 import authService from '@/api/authService'
 import usuariosService from '@/api/usuariosService'
 
@@ -93,9 +94,10 @@ const isAuthRoute = computed(() => {
   return ['/login', '/cadastro'].includes(route.path)
 })
 
-const isActive = (path) => {
-  return route.path === path
-}
+// REMOVIDA: A função isActive não é mais necessária no link do perfil
+// const isActive = (path) => {
+//   return route.path === path
+// }
 
 // Computado para exibir o cargo e a cor no ícone
 const cargoDisplay = computed(() => {
